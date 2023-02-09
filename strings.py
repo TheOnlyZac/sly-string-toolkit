@@ -21,6 +21,7 @@ def generate_strings_pnach(csv_file, start_address):
         string_pointers.append((string[0], offset))
         offset += len(string[1])
 
+    # 4 - Return the pnach lines and the array of pointers
     return (pnach_lines, string_pointers)
 
 """def generate_pointers_pnach(string_pointers, start_address):

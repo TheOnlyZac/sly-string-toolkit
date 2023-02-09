@@ -4,6 +4,14 @@ This is a toolkit for making string replacement mods for *Sly 2: Band of Thieves
 
 # Usage
 
+Run the script with the following command. Leave out the `-i` and `-o` arguments to use the default input and output files.
+
+`python main.py -i <inputfile> -o <outputfile>`
+* Default input file is `./strings.csv`
+* Default output file is `out/07652DD9.mod.pnach`
+
+# Setup guide
+
 1. Install Python 3.8 or higher.
 
 2. Clone the repository with `git clone https://github.com/theonlyzac/sly-string-toolkit.git`
@@ -12,15 +20,10 @@ This is a toolkit for making string replacement mods for *Sly 2: Band of Thieves
 
 4. Place your `strings.csv` file with custom strings in the same folder as the script.
 
-5. Run `python main.py` and follow the prompts.
+5. Run `python main.py` to generate the `.pnach` files
+   * Use the `-i` and `-o` arguments to specify the input and output files if desired.
 
 6. Copy the `.pnach` files to your `pcsx2/cheats` folder and start the game.
-
-## Assembling the .s file
-
-While the script is running, it will produce an assembly code file `mod.s`, then pause and ask you to assemble it using a MIPS assembler.
-
-Name the assembled file `mod.o` and put it in the same folder as the script, then press enter and it will continue generating the `.pnach` files.
 
 ## Output 
 
