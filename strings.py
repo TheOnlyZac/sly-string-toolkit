@@ -1,5 +1,4 @@
-import csv
-from gen_pnach import write_pnach
+import pnach, csv
 
 def generate_strings_pnach(csv_file, start_address, outfile="07652DD9.strings.pnach"):
     # This function generates a pnach file with the strings from the csv file
@@ -12,17 +11,11 @@ def generate_strings_pnach(csv_file, start_address, outfile="07652DD9.strings.pn
         reader = csv.reader(file)
         strings = [(int(row[0]), row[1].encode('utf-8') + b'\x00') for row in reader]
 
-    #print(strings)
-
     # 2 - Generate the pnach file
     offset = start_address
     string_data = b''.join([string[1] for string in strings])
-    pnach = write_pnach(offset, string_data)
-
-    #print(pnach)
-
-    with open(outfile, "w+") as f:
-        f.write(pnach)
+    pnach_lines = pnach.generate_pnach_lines(offset, string_data)
+    pnach.write_pnach_file(pnach_lines, outfile)
 
     # 3 - Generate the pointers to the strings
     for string in strings:
