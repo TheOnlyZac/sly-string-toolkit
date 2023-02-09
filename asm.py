@@ -1,6 +1,6 @@
 import csv
 
-def generate_asm(id_string_pairs, filename):
+def generate_asm(id_string_pairs):
     #mips_code = "# hook game function and jump to custom trampoline code\n"
     #mips_code += "j 0x2E60B0\n"
     #mips_code += "nop\n\n"
@@ -22,9 +22,8 @@ def generate_asm(id_string_pairs, filename):
     mips_code += "return:\n"
     mips_code += "jr $ra\n"
     mips_code += "nop\n"
-    
-    with open(filename, "w+") as f:
-        f.write(mips_code);
+
+    return mips_code
 
 def generate_code_from_csv(filename):
     id_string_pairs = []

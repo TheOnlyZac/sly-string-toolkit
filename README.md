@@ -4,15 +4,17 @@ This is a toolkit for making string replacement mods for *Sly 2: Band of Thieves
 
 # Usage
 
-1. Install Python 3.8.
+1. Install Python 3.8 or higher.
 
 2. Clone the repository with `git clone https://github.com/theonlyzac/sly-string-toolkit.git`
 
-3. Place your `strings.csv` file with custom strings in the same folder as the script.
+3. Install the dependencies with `pip install -r requirements.txt`
 
-4. Run `python main.py` and follow the prompts.
+4. Place your `strings.csv` file with custom strings in the same folder as the script.
 
-5. Copy the `.pnach` files to your `pcsx2/cheats` folder and start the game.
+5. Run `python main.py` and follow the prompts.
+
+6. Copy the `.pnach` files to your `pcsx2/cheats` folder and start the game.
 
 ## Assembling the .s file
 

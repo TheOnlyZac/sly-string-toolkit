@@ -1,8 +1,8 @@
 import pnach, csv
 
-def generate_strings_pnach(csv_file, start_address, outfile="07652DD9.strings.pnach"):
+def generate_strings_pnach(csv_file, start_address):
     # This function generates a pnach file with the strings from the csv file
-    # and returns the pointers to those strings
+    # and returns a tuple with the pnach lines and the arry of pointers to those strings
 
     # 1 - Read the csv file and extract the strings
     string_pointers = []
@@ -15,14 +15,13 @@ def generate_strings_pnach(csv_file, start_address, outfile="07652DD9.strings.pn
     offset = start_address
     string_data = b''.join([string[1] for string in strings])
     pnach_lines = pnach.generate_pnach_lines(offset, string_data)
-    pnach.write_pnach_file(pnach_lines, outfile)
 
     # 3 - Generate the pointers to the strings
     for string in strings:
         string_pointers.append((string[0], offset))
         offset += len(string[1])
 
-    return string_pointers
+    return (pnach_lines, string_pointers)
 
 """def generate_pointers_pnach(string_pointers, start_address):
     pnach_file = ""
