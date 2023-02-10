@@ -7,6 +7,7 @@ def main():
     parser.add_argument('-i', '--input', type=str, help='input CSV file (default is strings.csv)', default="strings.csv")
     parser.add_argument('-o', '--output', type=str, help='output PNACH file (leave blank for default)', default="./out/07652DD9.mod.pnach")
     parser.add_argument('-v', '--verbose', action='store_true', help='show verbose output')
+    
     args = parser.parse_args()
     
     # Create the out folder if it doesn't exist

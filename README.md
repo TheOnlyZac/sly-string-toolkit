@@ -4,14 +4,16 @@ This is a toolkit for making string replacement mods for *Sly 2: Band of Thieves
 
 # Usage
 
-`python main.py  `
+`python main.py <options>`
 
-## Optoins
-* `-i <inputfile>` - Default is `./strings.csv`
-* `-o <outputfile>` - Default is `out/07652DD9.mod.pnach`
+The script supports the following optional arguments:
+
+* `-i <inputfile>` - The name of the input csv file (default is `./strings.csv`)
+* `-o <outputfile>` - The name of the output pnach file (default is `out/07652DD9.mod.pnach`)
+* `-v` - Verbose output
 * `-h` - Show help
 
-# Setup guide
+# Getting started 
 
 1. Install Python 3.8 or higher.
 
@@ -28,17 +30,18 @@ This is a toolkit for making string replacement mods for *Sly 2: Band of Thieves
 
 ## Output 
 
-The script will output two files:
-
-* `07652DD9.mod.pnach` - This is the main mod file. It contains the assembly code that hooks the string loader function.
-* `07652DD9.strings.pnach` - This file contains the strings themselves.
+The script will output one pnach file. It contains the assembly code to load the custom strings and the strings themselves.
 
 You should copy both of these files to your `pcsx2/cheats` folder. You can change the name of the files if you want, but they must start with `07652DD9.` including the dot.
 
 # Strings File Format
 
-The strings file should be a CSV file. Each row should have the following format:
+The input file should be a CSV where each row has the following format:
 
-`<string id>,<string>`
+`<string id>,<string>,<optional target address>`
 
-where `<string id>` is the ID of the string you want to replace, and `<string>` is the string to replace it with.
+* `<string id>` is the ID of the string you want to replace
+* `<string>` is the string to replace it with
+* `<optional target address>` is the address to write the string to. If not specified, it will be written with the rest of the strings in a large block of unused memory.
+
+Everything after the third column is ignored by the script, so you can use them for notes if you want.
