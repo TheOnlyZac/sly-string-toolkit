@@ -1,5 +1,6 @@
 class Pnach:
-    def __init__(self, address="", data=b"", filename="07652DD9.mod.pnach"):
+    def __init__(self, address="", data=b""):
+        self._header =""
         self._chunks = {}
         if data != b"":
             self.add_chunk(address, data)
@@ -30,9 +31,22 @@ class Pnach:
     
     lines = property(get_lines)
 
-    # String representation of the object
+    # Getter and setter for header
+    def get_header(self):
+        return self._header
+
+    def set_header(self, header):
+        self._header = header
+    
+    header = property(get_header, set_header)
+
+    # Get a string of the pnach lines
     def __str__(self):
-        return f"patch=1,EE,{hex(self._address)},{hex(len(self._data))},{self._data}"
+        return self.lines
+
+    # Get a string representation of the object
+    def __repr__(self):
+        return f"Pnach object with {len(self._chunks)} chunks ({sum(len(chunk) for chunk in self._chunks.values())} bytes)"
 
     # Generate pnach lines from address and data
     def gen_pnach_lines(self):
@@ -45,19 +59,25 @@ class Pnach:
         
         return pnach_lines
     
+    # Add a chunk of data to the pnach
     def add_chunk(self, address, data):
         self._chunks[address] = data
 
-    # Write the pnach lines to a file
-    def write_file(self):
-        with open(self.filename, "w+") as f:
+    # Merge another pnach object's chunks into this one
+    def merge_chunks(self, other):
+        self._chunks.update(other._chunks)
+
+    # Write the pnach lines to a file with header
+    def write_file(self, filename="07652DD9.mod.pnach"):
+        with open(filename, "w+") as f:
+            if self._header != "":
+                f.write(self._header)
             f.write(self.lines)
 
-def read_bytes_from_file(filename):
-    with open(filename, "rb") as f:
-        return f.read()
-
 if __name__ == "__main__":
-    bytes = read_bytes_from_file("./out/mod.bin")
+    bytes = b""
+    with open("./out/mod.bin", "rb") as f:
+        bytes = f.read()
     pnach = Pnach(0x202E60B0, bytes)
     pnach.gen_pnach_lines()
+    print(pnach.lines)

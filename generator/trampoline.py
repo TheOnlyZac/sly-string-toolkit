@@ -39,4 +39,5 @@ class Trampoline:
 if __name__ == "__main__":
     trampoline = Trampoline()
     trampoline.gen_asm_from_csv("strings.csv")
+    print(trampoline.gen_asm())
     

@@ -59,3 +59,4 @@ class Strings:
 if __name__ == "__main__":
     strings = Strings('strings.csv', 0x203C7980)
     strings.gen_pnach()
+    print(strings.lines)

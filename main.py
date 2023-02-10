@@ -83,20 +83,24 @@ def main():
         print("Mod pnach code:")
         print(mod_pnach.lines)
 
-    # Add function hook for jump to custom trampoline code
-    hook_pnach_lines = "patch=1,EE,2013e380,extended,080B982C # j 0x2E60B0\n" \
-    + "patch=1,EE,2013e384,extended,00000000 # nop\n"
+    # Generate pnach for function hook to jump to trampoline code
+    """patch=1,EE,2013e380,extended,080B982C # j 0x2E60B0\n
+    patch=1,EE,2013e384,extended,00000000 # nop\n"""
+    hook_pnach = pnach.Pnach(0x2013e380, b"\x08\x0B\x98\x2C\x00\x00\x00\x00")
     
-    # Add header to pnach file
+    # Set up pnach header lines
     current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    header_pnach_lines = "pnach file generated with sly-string-toolkit\n" \
+    header_lines = "pnach file generated with sly-string-toolkit\n" \
     + "https://github.com/theonlyzac/sly-string-toolkit\n" \
     + f"date: {current_time}\n\n"
 
     # Write the final pnach file
-    final_pnach_lines = header_pnach_lines + strings_pnach.lines + mod_pnach.lines + hook_pnach_lines
-    with open(args.output, "w+") as file:
-        file.write(final_pnach_lines)
+    final_pnach = pnach.Pnach()
+    final_pnach.merge_chunks(hook_pnach)
+    final_pnach.merge_chunks(strings_pnach)
+    final_pnach.merge_chunks(mod_pnach)
+    final_pnach.set_header(header_lines)
+    final_pnach.write_file()
 
     # 5 - Done!
     print(f"Wrote mod to {args.output}")
