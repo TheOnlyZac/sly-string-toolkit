@@ -19,10 +19,10 @@ def generate_strings_pnach(csv_file, start_address):
         for row in reader:
             # if the length of the row is 3, add the address and string to the manual address strings array
             if len(row) == 3:
-                manual_address_strings.append((int(row[0]), row[1].encode('utf-8') + b'\x00', int(row[2], 16)))
+                manual_address_strings.append((int(row[0]), row[1].encode('iso-8859-1') + b'\x00', int(row[2], 16)))
             # otherwise add the string to the strings array
             else:
-                strings.append((int(row[0]), row[1].encode('utf-8') + b'\x00'))
+                strings.append((int(row[0]), row[1].encode('iso-8859-1') + b'\x00'))
 
     # 2 - Generate the pnach file
 
