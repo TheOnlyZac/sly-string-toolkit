@@ -15,5 +15,5 @@ def read_bytes_from_file(filename):
         return f.read()
 
 if __name__ == "__main__":
-    bytes = read_bytes_from_file("mod.o")
+    bytes = read_bytes_from_file("./out/mod.bin")
     generate_pnach_lines(0x202E60B0, bytes)

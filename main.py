@@ -4,10 +4,12 @@ from datetime import datetime
 
 def main():
     parser = argparse.ArgumentParser(description='Generate PNACH file from CSV.')
-    parser.add_argument('-i', '--input', type=str, help='input CSV file (default is strings.csv)', default="strings.csv")
-    parser.add_argument('-o', '--output', type=str, help='output PNACH file (leave blank for default)', default="./out/07652DD9.mod.pnach")
+    parser.add_argument('-i', '--input', type=str, help='input CSV file name (default is strings.csv)', default="strings.csv")
+    parser.add_argument('-o', '--output', type=str, help='output PNACH file name (default is ./out/07652DD9.mod.pnach)', default="./out/07652DD9.mod.pnach")
+    parser.add_argument('-a', '--address', type=str, help='address to write the strings to (default is 0x203C7980)', default="203C7980")
     parser.add_argument('-v', '--verbose', action='store_true', help='show verbose output')
-    
+    parser.add_argument('-d', '--debug', action='store_true', help='output asm and bin files for debugging')
+
     args = parser.parse_args()
     
     # Create the out folder if it doesn't exist
@@ -19,7 +21,7 @@ def main():
     # 1 - Generate the strings pnach and populate string pointers
     print("Reading strings from csv...")
 
-    string_pnach, string_pointers = strings.generate_strings_pnach(args.input, 0x203C7980)
+    string_pnach, string_pointers = strings.generate_strings_pnach(args.input, int(args.address, 16))
 
     if (args.verbose):
         print("String pointers:")
@@ -34,6 +36,11 @@ def main():
     if (args.verbose):
         print("Assembly code:")
         print(mips_code)
+    
+    if (args.debug):
+        print("Writing assembly code to file...")
+        with open("./out/mod.asm", "w+") as file:
+            file.write(mips_code)
 
     # 3 - Assemble the asm code to binary
     print("Assembling asm to binary...")
@@ -48,6 +55,11 @@ def main():
     if (args.verbose):
         print("Machine code bytes:")
         print(machine_code_bytes)
+
+    if (args.debug):
+        print("Writing binary code to file...")
+        with open("./out/mod.bin", "wb+") as file:
+            file.write(machine_code_bytes)
 
     # 4 - Generate the mod.pnach file
     print("Generating mod.pnach file...")

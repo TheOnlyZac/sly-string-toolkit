@@ -10,6 +10,7 @@ The script supports the following optional arguments:
 
 * `-i <inputfile>` - The name of the input csv file (default is `./strings.csv`)
 * `-o <outputfile>` - The name of the output pnach file (default is `out/07652DD9.mod.pnach`)
+* `-a <address>` - The address to write the strings to (default is `203C7980`)
 * `-v` - Verbose output
 * `-h` - Show help
 
@@ -42,6 +43,6 @@ The input file should be a CSV where each row has the following format:
 
 * `<string id>` is the ID of the string you want to replace
 * `<string>` is the string to replace it with
-* `<optional target address>` is the address to write the string to. If not specified, it will be written with the rest of the strings in a large block of unused memory.
+* `<optional target address>` is the address to write the string to. If not specified, it will be written with the rest of the strings in a block at the address specified by the `-a` option.
 
 Everything after the third column is ignored by the script, so you can use them for notes if you want.
