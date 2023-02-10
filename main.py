@@ -5,8 +5,8 @@ from datetime import datetime
 def main():
     # Parse command line arguments
     parser = argparse.ArgumentParser(description='Generate PNACH file from CSV.')
-    parser.add_argument('-i', '--input', type=str, help='input CSV file name (default is strings.csv)', default="strings.csv")
-    parser.add_argument('-o', '--output', type=str, help='output PNACH file name (default is ./out/07652DD9.mod.pnach)', default="./out/07652DD9.mod.pnach")
+    parser.add_argument('-i', '--input', type=str, help='the input CSV file name (default is strings.csv)', default="strings.csv")
+    parser.add_argument('-o', '--output', type=str, help='the output file name (default is ./out/07652DD9.mod.pnach)', default="./out/07652DD9.mod.pnach")
     parser.add_argument('-a', '--address', type=str, help='address to write the strings to (default is 0x203C7980)', default="203C7980")
     parser.add_argument('-v', '--verbose', action='store_true', help='show verbose output')
     parser.add_argument('-d', '--debug', action='store_true', help='output asm and bin files for debugging')
@@ -34,6 +34,8 @@ def main():
         print("String pointers:")
         for string_id, string_ptr in string_pointers:
             print(f"ID: {hex(string_id)} | Ptr: {hex(string_ptr)}")
+        print("Strings pnach:")
+        print(strings_pnach)
 
     # 2 - Generate the mod assembly code
     print("Generating assembly code...")
@@ -80,14 +82,19 @@ def main():
 
     # Print mod pnach code if verbose
     if (args.verbose):
-        print("Mod pnach code:")
-        print(mod_pnach.lines)
+        print("Mod pnach:")
+        print(mod_pnach)
 
     # Generate pnach for function hook to jump to trampoline code
     """patch=1,EE,2013e380,extended,080B982C # j 0x2E60B0\n
     patch=1,EE,2013e384,extended,00000000 # nop\n"""
-    hook_pnach = pnach.Pnach(0x2013e380, b"\x08\x0B\x98\x2C\x00\x00\x00\x00")
+    hook_pnach = pnach.Pnach(0x2013e380, b"\x2C\x98\x0B\x08\x00\x00\x00\x00")
     
+    # Print hook pnach code if verbose
+    if (args.verbose):
+        print("Hook pnach:")
+        print(hook_pnach.lines)
+
     # Set up pnach header lines
     current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     header_lines = "pnach file generated with sly-string-toolkit\n" \
@@ -100,7 +107,12 @@ def main():
     final_pnach.merge_chunks(strings_pnach)
     final_pnach.merge_chunks(mod_pnach)
     final_pnach.set_header(header_lines)
-    final_pnach.write_file()
+    final_pnach.write_file(args.output)
+
+    # Print final pnach if verbose
+    if (args.verbose):
+        print("Final pnach:")
+        print(final_pnach)
 
     # 5 - Done!
     print(f"Wrote mod to {args.output}")
