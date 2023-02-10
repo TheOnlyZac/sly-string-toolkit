@@ -1,6 +1,6 @@
 # Sly String Toolkit
 
-This is a toolkit for making string replacement mods for *Sly 2: Band of Thieves* for the PS2.
+This is a toolkit for making string replacement mods for *Sly 2: Band of Thieves* for the PS2. For a complete tutorial, see [this guide](https://slymods.info/wiki/Guide:Replacing_strings).
 
 # Usage
 
