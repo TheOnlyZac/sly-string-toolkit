@@ -11,6 +11,12 @@ def main():
     parser.add_argument('-d', '--debug', action='store_true', help='output asm and bin files for debugging')
 
     args = parser.parse_args()
+
+    # Check if the input file was specified, and if not, if strings.csv exists
+    if (args.input == "strings.csv" and not os.path.exists(args.input)):
+        print("Error: strings.csv not found.")
+        print("Please specify an input file using the -i flag.")
+        return
     
     # Create the out folder if it doesn't exist
     if (not os.path.exists("./out")):
@@ -89,4 +95,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-    
