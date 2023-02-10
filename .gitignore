@@ -3,6 +3,7 @@ out*
 build/
 __pycache__/
 .vscode/
+releases/
 *.pyc
 *.s
 *.o

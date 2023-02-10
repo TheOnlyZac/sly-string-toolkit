@@ -1,4 +1,5 @@
 # Sly String Toolkit
+<img src="thumb.png" alt="A screenshot of the Sly 2 title screen with strings replaced where game strings have been replaced with the name and link to the repository." align="right" style="float: right; margin: 10px; width: 400px">
 
 This is a toolkit for making string replacement mods for *Sly 2: Band of Thieves* for the PS2. For a complete tutorial, see [this guide](https://slymods.info/wiki/Guide:Replacing_strings).
 
