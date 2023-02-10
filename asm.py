@@ -1,9 +1,6 @@
 import csv
 
 def generate_asm(id_string_pairs):
-    #mips_code = "# hook game function and jump to custom trampoline code\n"
-    #mips_code += "j 0x2E60B0\n"
-    #mips_code += "nop\n\n"
     mips_code = "trampoline:\n"
     mips_code += "lw $v0, 0x4($a0)\n\n"
     mips_code += "# check if the ID matched is the string to replace\n"

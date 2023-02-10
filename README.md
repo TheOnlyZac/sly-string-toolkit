@@ -4,11 +4,12 @@ This is a toolkit for making string replacement mods for *Sly 2: Band of Thieves
 
 # Usage
 
-Run the script with the following command. Leave out the `-i` and `-o` arguments to use the default input and output files.
+`python main.py  `
 
-`python main.py -i <inputfile> -o <outputfile>`
-* Default input file is `./strings.csv`
-* Default output file is `out/07652DD9.mod.pnach`
+## Optoins
+* `-i <inputfile>` - Default is `./strings.csv`
+* `-o <outputfile>` - Default is `out/07652DD9.mod.pnach`
+* `-h` - Show help
 
 # Setup guide
 
