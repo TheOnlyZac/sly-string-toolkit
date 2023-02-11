@@ -11,9 +11,9 @@ This is a toolkit for making string replacement mods for *Sly 2: Band of Thieves
 The script supports the following optional arguments:
 
 * `-o <output_dir>` - The output directory for the pnach file (default is `./out/`)
-* `-n <mod_name>` - The name of the mod. The output file will be `07652DD9.<mod name>.pnach` (default is the same as the input file)
+* `-n <mod_name>` - The name of the mod. The output file will be `<crc>.<mod name>.pnach` (default is the same as the input file)
 * `-r <region>` - The region of the game. Can be `ntsc` or `pal` (default is `ntsc`)
-* `-d` - Output `out.asm` and `out.bin` files for debugging
+* `-d` - Enable debug file output
 * `-v` - Enable verbose output
 * `-h` - Show help
 
@@ -47,3 +47,17 @@ The input file should be a CSV where each row has the following format:
 * `<optional target address>` is the address to write the string to. If not specified, it will be written with the rest of the strings in a block at the address specified by the `-a` option.
 
 Everything after the third column is ignored by the script, so you can use them for notes if you want. You can make the file in Excel or Google Sheets and then export it as a CSV.
+
+# How it works
+
+This script hooks the string load function with custom code that instead loads the strings you specify in the CSV file. It does this by writing the strings to a block of memory and loads the strings from that block of memory instead of the original string table.
+
+The way the game normally loads any string is by iterating over a table that contains the IDs for all the strings in the game. If it finds a match, it loads the string from the string table at the address specified by the string ID. This script hooks the string load function at the moment where it returns the pointer to the string.
+
+Instead of returning the pointer to the original string, it runs our custom code which checks if there is a custom string with that ID. If so, it instead returns a pointer to the custom string. If not, it returns the pointer to the original string without any changes.
+
+When you run the script, it first converts all the custom strings to hexadecimal values and generates a pnach which writes those strings to a specific block of unused RAM. It then generates and assembles the MIPS code which checks each custom string ID and returns the pointer to the custom string if it exists. Finally, it writes the assembly code to the pnach file and hooks the string load function.
+
+# Credits
+
+Special thanks to [zzamizz](https://github.com/zzamizz) for extensive testing the script and assistance with reverse engineering the string load functions.
