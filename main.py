@@ -1,6 +1,13 @@
-import os, argparse, keystone, struct;
-from generator import strings, trampoline, pnach;
+"""
+Sly String Toolkit — Pnach Generator
+A tool to generate pnach files from CSV files
+"""
+import os
+import argparse
 from datetime import datetime
+import struct
+import keystone
+from generator import strings, trampoline, pnach
 
 SLY2_NTSC_CRC = "07652DD9"
 SLY2_NTSC_HOOK = 0x2013e380
@@ -12,7 +19,9 @@ SLY2_PAL_HOOK = 0x2013e398
 SLY2_PAL_ASM_DEFAULT = 0x202ED500
 SLY2_PAL_STRINGS_DEFAULT = 0x203E99A0
 
+
 def main():
+    """Main function, parses command line arguments and generates the pnach file"""
     # Parse command line arguments
     parser = argparse.ArgumentParser(description='Generate PNACH file from CSV.')
     parser.add_argument('input_file', type=str, help='the input CSV file name (default is strings.csv)', default="strings.csv")
@@ -30,19 +39,19 @@ def main():
     if (args.region == "ntsc"):
         crc = SLY2_NTSC_CRC
         hook_adr = SLY2_NTSC_HOOK
-        asm_adr = SLY2_NTSC_ASM_DEFAULT if args.asm == None else int(args.asm, 16)
-        strings_adr = SLY2_NTSC_STRINGS_DEFAULT if args.strings == None else int(args.strings, 16)
+        asm_adr = SLY2_NTSC_ASM_DEFAULT if args.asm is None else int(args.asm, 16)
+        strings_adr = SLY2_NTSC_STRINGS_DEFAULT if args.strings is None else int(args.strings, 16)
     elif (args.region == "pal"):
         crc = SLY2_PAL_CRC
         hook_adr = SLY2_PAL_HOOK
-        asm_adr = SLY2_PAL_ASM_DEFAULT if args.asm == None else int(args.asm, 16)
-        strings_adr = SLY2_PAL_STRINGS_DEFAULT if args.strings == None else int(args.strings, 16)
+        asm_adr = SLY2_PAL_ASM_DEFAULT if args.asm is None else int(args.asm, 16)
+        strings_adr = SLY2_PAL_STRINGS_DEFAULT if args.strings is None else int(args.strings, 16)
 
     # Check if the input file was specified, and if not, if strings.csv exists
     if (args.input_file == "strings.csv" and not os.path.exists(args.input_file)):
         print("Usage: python main.py [input_file] [-o output_dir] [-n mod_name]")
         return
-    
+
     # Create the out folder if it doesn't exist
     if (not os.path.exists("./out")):
         if (args.verbose):
@@ -66,16 +75,16 @@ def main():
     print("Generating assembly code...")
     trampoline_obj = trampoline.Trampoline(string_pointers)
     mips_code = trampoline_obj.gen_asm()
-    
+
     # Print assembly code if verbose
     if (args.verbose):
         print("Assembly code:")
         print(mips_code)
-    
+
     # Write assembly code to file if debug
     if (args.debug):
         print("Writing assembly code to file...")
-        with open("./out/mod.asm", "w+") as file:
+        with open("./out/mod.asm", "w+", encoding="iso-8859-1") as file:
             file.write(mips_code)
 
     # 3 - Assemble the asm code to binary
@@ -90,6 +99,7 @@ def main():
 
     # Print machine code bytes if verbose
     if (args.verbose):
+        print(f"Assembled {count} bytes of machine code")
         print("Machine code bytes:")
         print(machine_code_bytes)
 
@@ -127,16 +137,16 @@ def main():
     # Set up pnach header lines
     current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     header_lines = "pnach file generated with sly-string-toolkit\n" \
-                 + "https://github.com/theonlyzac/sly-string-toolkit\n" \
-                 + f"date: {current_time}\n\n"
+        + "https://github.com/theonlyzac/sly-string-toolkit\n" \
+        + f"date: {current_time}\n\n"
 
     # Set the mod name (default is same as input file)
     mod_name = args.name
-    if (args.name == None):
+    if (args.name is None):
         mod_name = os.path.splitext(os.path.basename(args.input_file))[0]
-    
+
     # Write the final pnach file
-    outfile = f"{args.output}\\{crc}.{mod_name}.pnach"   
+    outfile = f"{args.output}\\{crc}.{mod_name}.pnach"
     final_pnach = pnach.Pnach()
     final_pnach.merge_chunks(hook_pnach)
     final_pnach.merge_chunks(mod_pnach)
@@ -151,6 +161,7 @@ def main():
 
     # 5 - Done!
     print(f"Wrote pnach file to {outfile}")
+
 
 if __name__ == "__main__":
     main()

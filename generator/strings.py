@@ -1,5 +1,9 @@
-from generator import pnach
+"""
+Thie file contains the Strings class, which generates a pnach file with the strings from a csv
+and returns a tuple with the pnach object and the array of pointers to the strings.
+"""
 import csv
+from generator import pnach
 
 class Strings:
     def __init__(self, csv_file, start_address):
@@ -7,7 +11,7 @@ class Strings:
         self.start_address = start_address
 
     def gen_pnach(self):
-        """ Generates a pnach file with the strings from the csv file and returns 
+        """Generates a pnach file with the strings from the csv file and returns
         a tuple with the pnach object and the array of pointers to the strings
 
         CSV rows are in the following format:
@@ -57,6 +61,6 @@ class Strings:
         return (pnach_obj, id_string_pointer_pairs)
 
 if __name__ == "__main__":
-    strings = Strings('strings.csv', 0x203C7980)
-    strings.gen_pnach()
-    print(strings.lines)
+    sample_strings = Strings('strings.csv', 0x203C7980)
+    sample_pnach = sample_strings.gen_pnach()
+    print(sample_pnach.lines)
