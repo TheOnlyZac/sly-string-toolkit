@@ -68,7 +68,7 @@ class Pnach:
         self._chunks.update(other._chunks)
 
     # Write the pnach lines to a file with header
-    def write_file(self, filename="07652DD9.mod.pnach"):
+    def write_file(self, filename):
         with open(filename, "w+") as f:
             if self._header != "":
                 f.write(self._header)

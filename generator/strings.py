@@ -23,8 +23,6 @@ class Strings:
             strings = []
             manual_address_strings = []
             for row in reader:
-                print("\n\n\n\n")
-                print(row)
                 # if the length of the row is 3, add the address and string to the manual address strings array
                 if len(row) == 3:
                     manual_address_strings.append((int(row[0]), row[1].encode('iso-8859-1') + b'\x00', int(row[2], 16)))
