@@ -54,7 +54,9 @@ class Pnach:
         # Write each chunk of lines
         for address, data in self._chunks.items():
             for i in range(0, len(data), 4):
-                line = f"patch=1,EE,{address + i:X},extended,{int.from_bytes(data[i:i + 4][::-1], 'big'):08X}\n"
+                pnach_code = address + i
+                value = int.from_bytes(data[i:i + 4][::-1], 'big')
+                line = f"patch=1,EE,{pnach_code:X},extended,{value:08X}\n"
                 pnach_lines += line
         
         return pnach_lines

@@ -12,7 +12,7 @@ The script supports the following optional arguments:
 
 * `-o <output_dir>` - The output directory for the pnach file (default is `./out/`)
 * `-n <mod_name>` - The name of the mod. The output file will be `07652DD9.<mod name>.pnach` (default is the same as the input file)
-* `-a <address>` - The address to write the strings to (default is `203C7980`)
+* `-r <region>` - The region of the game. Can be `ntsc` or `pal` (default is `ntsc`)
 * `-d` - Output `out.asm` and `out.bin` files for debugging
 * `-v` - Enable verbose output
 * `-h` - Show help
