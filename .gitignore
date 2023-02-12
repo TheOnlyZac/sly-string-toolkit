@@ -4,6 +4,8 @@ build/
 __pycache__/
 .vscode/
 releases/
+temp/
+tmp/
 *.pyc
 *.s
 *.o

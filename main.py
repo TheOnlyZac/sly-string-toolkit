@@ -2,7 +2,7 @@
 Sly String Toolkit — Pnach Generator
 A tool to generate pnach files from CSV files
 """
-import os
+import os, sys
 import argparse
 from datetime import datetime
 import struct
@@ -27,9 +27,10 @@ def main():
     parser.add_argument('input_file', type=str, help='the input CSV file name (default is strings.csv)', default="strings.csv")
     parser.add_argument('-o', '--output', type=str, help='the output directory (default is ./out/)', default="./out/")
     parser.add_argument('-r', '--region', type=str, help='the region of the game, supports ntsc and pal (default is ntsc)', default="ntsc")
-    parser.add_argument('-a', '--asm', type=str, help='set the address where the pnach will inject the asm code')
-    parser.add_argument('-s', '--strings', type=str, help='set the address where the pnach will inject the custom strings')
-    parser.add_argument('-n', '--name', type=str, help='name of the mod (default is same as input file')
+    parser.add_argument('-c', '--code_address', type=str, help='set the address where the pnach will inject the asm code')
+    parser.add_argument('-s', '--strings_address', type=str, help='set the address where the pnach will inject the custom strings')
+    parser.add_argument('-n', '--name', type=str, help='name of the mod (default is same as input file)')
+    parser.add_argument('-a', '--author', type=str, help='name of the author (default is Sly String Toolkit)', default="Sly String Toolkit")
     parser.add_argument('-v', '--verbose', action='store_true', help='show verbose output')
     parser.add_argument('-d', '--debug', action='store_true', help='output asm and bin files for debugging')
     args = parser.parse_args()
@@ -39,13 +40,16 @@ def main():
     if (args.region == "ntsc"):
         crc = SLY2_NTSC_CRC
         hook_adr = SLY2_NTSC_HOOK
-        asm_adr = SLY2_NTSC_ASM_DEFAULT if args.asm is None else int(args.asm, 16)
-        strings_adr = SLY2_NTSC_STRINGS_DEFAULT if args.strings is None else int(args.strings, 16)
+        asm_adr = SLY2_NTSC_ASM_DEFAULT if args.code_address is None else int(args.code_address, 16)
+        strings_adr = SLY2_NTSC_STRINGS_DEFAULT if args.strings_address is None else int(args.strings_address, 16)
     elif (args.region == "pal"):
         crc = SLY2_PAL_CRC
         hook_adr = SLY2_PAL_HOOK
-        asm_adr = SLY2_PAL_ASM_DEFAULT if args.asm is None else int(args.asm, 16)
-        strings_adr = SLY2_PAL_STRINGS_DEFAULT if args.strings is None else int(args.strings, 16)
+        asm_adr = SLY2_PAL_ASM_DEFAULT if args.code_address is None else int(args.code_address, 16)
+        strings_adr = SLY2_PAL_STRINGS_DEFAULT if args.strings_address is None else int(args.strings_address, 16)
+    else:
+        print(f"Error: Region {args.region} not supported, must be `ntsc` or `pal`")
+        return
 
     # Check if the input file was specified, and if not, if strings.csv exists
     if (args.input_file == "strings.csv" and not os.path.exists(args.input_file)):
@@ -62,6 +66,8 @@ def main():
     print(f"Reading strings from {args.input_file} to 0x{strings_adr:X}...")
     strings_obj = strings.Strings(args.input_file, strings_adr)
     strings_pnach, string_pointers = strings_obj.gen_pnach()
+    # set strings header with address of strings, number of strings, and number of bytes
+    strings_pnach.set_header(f"comment=Loading {len(string_pointers)} strings ({len(strings_pnach.lines)*4} bytes) at {hex(strings_adr)}...")
 
     # Print string pointers if verbose
     if (args.verbose):
@@ -88,6 +94,10 @@ def main():
             file.write(mips_code)
 
     # 3 - Assemble the asm code to binary
+
+    # TEMPORARY override asm address so it comes right after the strings
+    #asm_adr = strings_adr + len(strings_pnach.lines)*4 + 4
+    
     print(f"Assembling asm at 0x{asm_adr:X}...")
 
     # Initialize the MIPS assembler
@@ -114,6 +124,7 @@ def main():
 
     # Generate mod pnach code
     mod_pnach = pnach.Pnach(asm_adr, machine_code_bytes)
+    mod_pnach.set_header(f"comment=Loading {len(machine_code_bytes)} bytes of machine code at {hex(asm_adr)}...")
 
     # Print mod pnach code if verbose
     if (args.verbose):
@@ -128,36 +139,39 @@ def main():
     # NTSC hook address: 0x2013e380
     # PAL hook address: 0x2013e398
     hook_pnach = pnach.Pnach(hook_adr, hook_bytes)
+    hook_pnach.set_header(f"comment=Hooking string load function at {hex(hook_adr)}...")
 
     # Print hook pnach code if verbose
     if (args.verbose):
         print("Hook pnach:")
-        print(hook_pnach.lines)
-
-    # Set up pnach header lines
-    current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    header_lines = "pnach file generated with sly-string-toolkit\n" \
-        + "https://github.com/theonlyzac/sly-string-toolkit\n" \
-        + f"date: {current_time}\n\n"
-
+        print(hook_pnach)
+    
     # Set the mod name (default is same as input file)
     mod_name = args.name
     if (args.name is None):
         mod_name = os.path.splitext(os.path.basename(args.input_file))[0]
 
+    # Set up pnach header lines
+    current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    region_string = "NTSC" if args.region == "ntsc" else "PAL"
+    header_lines = f"gametitle=Sly 2: Band of Thieves ({region_string})\n" \
+        + f"comment={mod_name} by {args.author}\n\n" \
+        + f"{mod_name} by {args.author}\n" \
+        + "Pnach generated with Sly String Toolkit\n" \
+        + "https://github.com/theonlyzac/sly-string-toolkit\n" \
+        + f"date: {current_time}\n\n"
+
     # Write the final pnach file
-    outfile = f"{args.output}\\{crc}.{mod_name}.pnach"
-    final_pnach = pnach.Pnach()
-    final_pnach.merge_chunks(hook_pnach)
-    final_pnach.merge_chunks(mod_pnach)
-    final_pnach.merge_chunks(strings_pnach)
-    final_pnach.set_header(header_lines)
-    final_pnach.write_file(outfile)
+    outfile = os.path.join(args.output, f"{crc}.{mod_name}.pnach")
+    final_pnach_lines = header_lines + str(hook_pnach) + str(mod_pnach) \
+        + str(strings_pnach) +  "comment=Done!\n"
+    with open(outfile, "w+", encoding="iso-8859-1") as f:
+        f.write(final_pnach_lines)
 
     # Print final pnach if verbose
     if (args.verbose):
         print("Final pnach:")
-        print(final_pnach)
+        print(final_pnach_lines)
 
     # 5 - Done!
     print(f"Wrote pnach file to {outfile}")

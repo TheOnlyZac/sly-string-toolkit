@@ -9,9 +9,18 @@ class Pnach:
         if data != b"":
             self.add_chunk(address, data)
 
-    # Getter for lines (no setter)
-    def get_lines (self):
-        return self.gen_pnach_lines()
+    # Getter for array of lines (no setter)
+    def get_lines(self):
+        lines = []
+        # Write each chunk of lines
+        for address, data in self._chunks.items():
+            for i in range(0, len(data), 4):
+                pnach_code = address + i
+                value = int.from_bytes(data[i:i + 4][::-1], 'big')
+                line = f"patch=1,EE,{pnach_code:X},extended,{value:08X}"
+                lines.append(line)
+        
+        return lines
 
     lines = property(get_lines)
 
@@ -32,22 +41,13 @@ class Pnach:
     def get_chunks(self):
         return self._chunks
 
+    # Get all the bytes from each chunk
+    def get_bytes(self):
+        return b"".join(self._chunks.values())
+
     # Merge another pnach object's chunks into this one
     def merge_chunks(self, other):
         self._chunks.update(other.get_chunks())
-
-    # Generate pnach lines from address and data
-    def gen_pnach_lines(self):
-        pnach_lines = ""
-        # Write each chunk of lines
-        for address, data in self._chunks.items():
-            for i in range(0, len(data), 4):
-                pnach_code = address + i
-                value = int.from_bytes(data[i:i + 4][::-1], 'big')
-                line = f"patch=1,EE,{pnach_code:X},extended,{value:08X}\n"
-                pnach_lines += line
-
-        return pnach_lines
 
     # Write the pnach lines to a file with header
     def write_file(self, filename):
@@ -56,9 +56,18 @@ class Pnach:
                 f.write(self._header)
             f.write(self.lines)
 
-    # Get a string of the pnach lines
+    # Generate pnach lines from address and data
     def __str__(self):
-        return self.lines
+        pnach_str = ""
+
+        # Write header
+        if self._header != "":
+            pnach_str += self._header + "\n"
+
+        # Write pnach code lines
+        pnach_str += '\n'.join(self.lines) + "\n"
+
+        return pnach_str
 
     # Get a string representation of the object
     def __repr__(self):
