@@ -31,6 +31,10 @@ def main():
     if (not os.path.exists(args.input_file)):
         print("Usage: python main.py [input_file] [-o output_dir] [-n mod_name]")
         return
+    
+    # Make sure input file is a complete path
+    if (not os.path.isabs(args.input_file)):
+        args.input_file = os.path.abspath(args.input_file)
 
     # Set verbose and debug flags on generator
     Generator.set_verbose(args.verbose)
