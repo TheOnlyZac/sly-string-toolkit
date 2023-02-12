@@ -1,2 +1,3 @@
 keystone-engine
 watchdog
+chardet

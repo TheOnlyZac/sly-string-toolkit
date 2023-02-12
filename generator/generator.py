@@ -263,7 +263,7 @@ class Generator:
 
         # Write the final pnach file
         outfile = os.path.join(output_dir, f"{crc}.{mod_name}.pnach")
-        with open(outfile, "w+", encoding="utf-8") as f:
+        with open(outfile, "w+", encoding="iso-8859-1") as f:
             f.write(pnach_lines)
 
         print(f"Wrote pnach file to {outfile}")

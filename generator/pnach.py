@@ -54,7 +54,7 @@ class Pnach:
         """
         Returns the conditional for the pnach file.
         """
-        return self._conditional
+        return self._conditionals
     
     def add_conditional(self, address, value, type="eq"):
         """
