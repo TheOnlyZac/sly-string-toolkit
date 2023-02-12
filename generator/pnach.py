@@ -11,9 +11,10 @@ class Pnach:
         Constructor for the Pnach class.
         """
         self._header =""
+        self._conditionals = {}
         self._chunks = {}
         if data != b"":
-            self.add_chunk(address, data)
+            self.add_chunk(address, data)\
 
     # Getter for array of lines (no setter)
     def get_lines(self):
@@ -47,6 +48,27 @@ class Pnach:
         self._header = header
 
     header = property(get_header, set_header)
+
+    # Get and add conditionals
+    def get_conditionals(self):
+        """
+        Returns the conditional for the pnach file.
+        """
+        return self._conditional
+    
+    def add_conditional(self, address, value, type="eq"):
+        """
+        Sets the conditional for the pnach file. The pnach will
+        only be applied if the given address has the given value.
+        """
+        # Switch the type to the correct value
+        if type == "eq":
+            type = 0
+        elif type == "neq":
+            type = 1
+        
+        # Add the conditional
+        self._conditionals.update({ "address": address, "value": value, "type": type })
 
     # Chunk methods
     def add_chunk(self, address, data):
@@ -94,8 +116,35 @@ class Pnach:
         if self._header != "":
             pnach_str += self._header + "\n"
 
-        # Write pnach code lines
-        pnach_str += '\n'.join(self.lines) + "\n"
+        lines = self.lines
+        num_lines = len(lines)
+
+        # Conditionals can only apply to 0xFF lines at a time, so
+        # we need to split the lines into chunks of 0xFF
+
+        """
+        Format of 16-bit conditional if-equal pnach line:
+        patch=1,EE,E0nnvvvv,extended,0aaaaaaa
+        Compares value at address @a to value @v, and executes next @n code llines only if they are equal.
+        """
+        if len(self._conditionals) > 0:
+            # Get conditional values
+            address = self._conditionals['address']
+            value = self._conditionals['value']
+            type = self._conditionals['type']
+
+            # Write pnach code lines in chunks of 0xFF
+            for i in range(0, num_lines, 0xFF):
+                num_lines_remaining = num_lines - i
+                num_lines_to_write = 0xFF if num_lines_remaining > 0xFF else num_lines_remaining
+                # Add conditional
+                pnach_str += f"comment=Conditional: if *{address:X} == 0x{value:08X}\n"
+                pnach_str += f"patch=1,EE,E{type:1X}{num_lines_to_write:02X}0000,extended,0{address:07X}\n"
+                # Write lines
+                pnach_str += '\n'.join(lines[i:i + num_lines_to_write]) + "\n"
+        else:
+            # Write all pnach code lines
+            pnach_str += '\n'.join(self.lines) + "\n"
 
         return pnach_str
 

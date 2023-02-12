@@ -28,7 +28,7 @@ class Strings:
         # 1 - Read the csv file and extract the strings
         id_string_pointer_pairs = []
 
-        with open(self.csv_file, 'r') as file:
+        with open(self.csv_file, 'r', encoding='utf-8') as file:
             reader = csv.reader(file)
             # iterate over rows and add the string to the list, checking if the string has a target address
             # create an array of strings from the file

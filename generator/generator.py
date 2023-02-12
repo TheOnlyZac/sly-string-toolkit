@@ -17,6 +17,20 @@ SLY2_PAL_HOOK = 0x2013e398
 SLY2_PAL_ASM_DEFAULT = 0x202ED500
 SLY2_PAL_STRINGS_DEFAULT = 0x203CF190
 
+LANGUAGE_IDS = {
+    "en": 0, # english
+    "fr": 1, # french
+    "it": 2, # italian
+    "de": 3, # german
+    "es": 4, # spanish
+    "nd": 5, # dutch
+    "pt": 6, # portuguese
+    "da": 7, # danish
+    "fi": 8, # finnish
+    "no": 9, # norwegian
+    "sv": 10, # swedish
+}
+
 class Generator:
     """
     Generator class, generates a pnach file from a CSV file
@@ -25,13 +39,13 @@ class Generator:
     verbose = False
     debug = False
 
-    def __init__(self, region="ntsc", strings_address=None, code_address=None):
+    def __init__(self, region="ntsc", lang=None, strings_address=None, code_address=None):
         """
         Initializes the generator with the specified region and addresses
         """
-        print(region)
         # Set region
-        self.region = region
+        self.region = region.lower()
+        self.lang = LANGUAGE_IDS[lang.lower()] if lang is not None else None
 
         # Set code and strings addresses based on region
         if (region == "ntsc"):
@@ -43,11 +57,17 @@ class Generator:
         else:
             raise Exception(f"Error: Region {region} not supported, must be `ntsc` or `pal`")
         
+        # Set hook address based on region
+        self.hook_adr = SLY2_NTSC_HOOK if self.region == "ntsc" else SLY2_PAL_HOOK
+
         # Ensure addresses are ints
         if (type(self.strings_adr) == str):
             self.strings_adr = int(self.strings_adr, 16)
         if (type(self.code_address) == str):
             self.code_address = int(self.code_address, 16)
+        if (type(self.hook_adr) == str):
+            self.hook_adr = int(self.hook_adr, 16)
+
 
     @staticmethod
     def set_verbose(verbose):
@@ -149,9 +169,6 @@ class Generator:
         if (self.verbose):
             print("Generating pnach file...")
 
-        # Set hook address based on region
-        hook_adr = SLY2_NTSC_HOOK if self.region == "ntsc" else SLY2_PAL_HOOK
-
         # Generate mod pnach code
         mod_pnach = pnach.Pnach(self.code_address, machine_code_bytes)
         mod_pnach.set_header(f"comment=Loading {len(machine_code_bytes)} bytes of machine code at {hex(self.code_address)}...")
@@ -165,10 +182,8 @@ class Generator:
         hook_asm = f"j {self.code_address}\n"
         hook_code, count = self.assemble(hook_asm)
 
-        # NTSC hook address: 0x2013e380
-        # PAL hook address: 0x2013e398
-        hook_pnach = pnach.Pnach(hook_adr, hook_code)
-        hook_pnach.set_header(f"comment=Hooking string load function at {hex(hook_adr)}...")
+        hook_pnach = pnach.Pnach(self.hook_adr, hook_code)
+        hook_pnach.set_header(f"comment=Hooking string load function at {hex(self.hook_adr)}...")
 
         # Print hook pnach code if verbose
         if (self.verbose):
@@ -188,6 +203,19 @@ class Generator:
         trampoline_binary, count = self.assemble(trampoline_asm)
         mod_pnach, hook_pnach = self._gen_code_pnach(trampoline_binary)
 
+        cancel_hook_str = ""
+        if not self.lang is None:
+            strings_pnach.add_conditional(0x2E9254, self.lang)
+            mod_pnach.add_conditional(0x2E9254, self.lang)
+
+            # Generate pnach which cancels the function hook if the language is not the one we want
+            cancel_hook_asm = f"jr $ra\nlw $v0, 0x4($a0)"
+            cancel_hook_code, count = self.assemble(cancel_hook_asm)
+            cancel_hook_pnach = pnach.Pnach(self.hook_adr, cancel_hook_code)
+            cancel_hook_pnach.set_header(f"comment=Loading {len(cancel_hook_code)} bytes of machine code at {hex(self.code_address)}...\nCancel the hook if language is wrong")
+            cancel_hook_pnach.add_conditional(0x2E9254, self.lang, "neq")
+            cancel_hook_str = str(cancel_hook_pnach)
+
         # Set the mod name (default is same as input file)
         if (mod_name is None or mod_name == ""):
             mod_name = os.path.splitext(os.path.basename(input_file))[0]
@@ -203,7 +231,7 @@ class Generator:
             + f"date: {timestamp}\n\n"
 
         # Set up final pnach lines
-        final_pnach_lines = header_lines + str(hook_pnach) + str(mod_pnach) + str(strings_pnach) + "comment=Done!\n"
+        final_pnach_lines = header_lines + str(hook_pnach) + str(mod_pnach) + str(strings_pnach) + cancel_hook_str + "comment=Done!\n"
 
         # Print final pnach if verbose
         if (self.verbose):
