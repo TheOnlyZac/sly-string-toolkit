@@ -1,16 +1,20 @@
-"""Main file for Sly String Toolkit"""
+"""
+Main file for Sly String Toolkit
+"""
 import os
 import argparse
 from generator import Generator
 
 def main():
-    """Main function, parses command line arguments and calls the pnach generator"""
+    """
+    Main function, parses command line arguments and calls the pnach generator
+    """
     # Parse command line arguments
     parser = argparse.ArgumentParser(description='Generate PNACH file from CSV.')
     parser.add_argument('input_file', type=str, help='input CSV file name (default is strings.csv)', default="strings.csv")
     parser.add_argument('-o', '--output-dir', type=str, help='output directory (default is ./out/)', default="./out/")
     parser.add_argument('-r', '--region', type=str, help='the region of the game, support ntsc and pal (default is ntsc)', default="ntsc")
-    parser.add_argument('-c', '--code_address', type=str, help='set the address where the pnach will inject the asm code')
+    parser.add_argument('-c', '--code-address', type=str, help='set the address where the pnach will inject the asm code')
     parser.add_argument('-s', '--strings-address', type=str, help='set the address where the pnach will inject the custom strings')
     parser.add_argument('-n', '--mod-name', type=str, help='name of the mod (default is same as input file)')
     parser.add_argument('-a', '--author', type=str, help='name of the author (default is Sly String Toolkit)', default="Sly String Toolkit")

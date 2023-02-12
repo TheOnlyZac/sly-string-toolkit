@@ -15,7 +15,7 @@ SLY2_NTSC_STRINGS_DEFAULT = 0x203C7980
 SLY2_PAL_CRC = "FDA1CBF6"
 SLY2_PAL_HOOK = 0x2013e398
 SLY2_PAL_ASM_DEFAULT = 0x202ED500
-SLY2_PAL_STRINGS_DEFAULT = 0x203E99A0
+SLY2_PAL_STRINGS_DEFAULT = 0x20432C00
 
 class Generator:
     """
@@ -43,6 +43,11 @@ class Generator:
         else:
             raise Exception(f"Error: Region {region} not supported, must be `ntsc` or `pal`")
         
+        # Ensure addresses are ints
+        if (type(self.strings_adr) == str):
+            self.strings_adr = int(self.strings_adr, 16)
+        if (type(self.code_address) == str):
+            self.code_address = int(self.code_address, 16)
 
     @staticmethod
     def set_verbose(verbose):
@@ -184,7 +189,7 @@ class Generator:
         mod_pnach, hook_pnach = self._gen_code_pnach(trampoline_binary)
 
         # Set the mod name (default is same as input file)
-        if (mod_name is None):
+        if (mod_name is None or mod_name == ""):
             mod_name = os.path.splitext(os.path.basename(input_file))[0]
 
         # Set up pnach header lines
@@ -220,6 +225,10 @@ class Generator:
 
         # Set crc based on region
         crc = SLY2_NTSC_CRC if self.region == "ntsc" else SLY2_PAL_CRC
+
+        # Set the mod name (default is same as input file)
+        if (mod_name is None or mod_name == ""):
+            mod_name = os.path.splitext(os.path.basename(input_file))[0]
 
         # Generate the pnach
         pnach_lines = self.generate_pnach_lines(input_file, mod_name, author)
