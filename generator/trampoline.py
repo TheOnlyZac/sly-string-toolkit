@@ -5,13 +5,22 @@ for accessing the custom string table.
 import csv
 
 class Trampoline:
+    """
+    Trampoline class
+    """
     def __init__(self, id_string_pairs=None):
+        """
+        Initializes the trampoline with the specified ID/string pairs
+        """
         if id_string_pairs is None:
             self.id_string_pairs = []
         else:
             self.id_string_pairs = id_string_pairs
 
     def gen_asm(self):
+        """
+        Generates the trampoline assembly code from the ID/string pairs on the object
+        """
         asm = "trampoline:\n"
         asm += "lw $v0, 0x4($a0)\n\n"
 
@@ -33,6 +42,9 @@ class Trampoline:
         return asm
 
     def gen_asm_from_csv(self, filename):
+        """
+        Read the ID/string pairs from a csv and generates the assembly code
+        """
         self.id_string_pairs = []
         with open(filename, 'r', encoding='iso') as csvfile:
             reader = csv.reader(csvfile)

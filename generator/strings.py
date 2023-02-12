@@ -6,21 +6,29 @@ import csv
 from generator import pnach
 
 class Strings:
+    """
+    This class reads a csv file and generates a pnach file with the strings
+    and popoulates an array of pointers to the strings
+    """
     def __init__(self, csv_file, start_address):
+        """
+        Initializes the Strings object
+        """
         self.csv_file = csv_file
         self.start_address = start_address
 
     def gen_pnach(self):
-        """Generates a pnach file with the strings from the csv file and returns
+        """
+        Generates a pnach file with the strings from the csv file and returns
         a tuple with the pnach object and the array of pointers to the strings
-
+        
         CSV rows are in the following format:
-        <string_id>,<string>,<optional_target_address>"""
-
+        <string_id>,<string>,<optional_target_address>
+        """
         # 1 - Read the csv file and extract the strings
         id_string_pointer_pairs = []
 
-        with open(self.csv_file, 'r', encoding='iso-8859-1') as file:
+        with open(self.csv_file, 'r') as file:
             reader = csv.reader(file)
             # iterate over rows and add the string to the list, checking if the string has a target address
             # create an array of strings from the file
@@ -29,10 +37,10 @@ class Strings:
             for row in reader:
                 # if the length of the row is 3, add the address and string to the manual address strings array
                 if len(row) == 3:
-                    manual_address_strings.append((int(row[0]), row[1].encode('iso-8859-1') + b'\x00', int(row[2], 16)))
+                    manual_address_strings.append((int(row[0]), row[1].encode('utf-8') + b'\x00', int(row[2], 16)))
                 # otherwise add the string to the strings array
                 else:
-                    strings.append((int(row[0]), row[1].encode('iso-8859-1') + b'\x00'))
+                    strings.append((int(row[0]), row[1].encode('utf-8') + b'\x00'))
 
         # 2 - Generate the pnach file
         pnach_obj = pnach.Pnach()
