@@ -13,6 +13,7 @@ The script supports the following optional arguments:
 * `-o <output_dir>` - The output directory for the pnach file (default is `./out/`)
 * `-n <mod_name>` - The name of the mod. The output file will be `<crc>.<mod name>.pnach` (default is the same as the input file)
 * `-r <region>` - The region of the game. Can be `ntsc` or `pal` (default is `ntsc`)
+* `-l` - Enable live edit mode. This will allow you to edit the strings in the csv and the pnach will automatically update.
 * `-d` - Enable debug file output
 * `-v` - Enable verbose output
 * `-h` - Show help
@@ -34,7 +35,7 @@ The script supports the following optional arguments:
 
 The script will output one pnach file. It contains the assembly code to load the custom strings and the strings themselves.
 
-You should put this file in your `pcsx2/cheats` folder. You can change the name of the file if you want, but it must start with `07652DD9.` (including the dot) and end with `.pnach`.
+You should put this file in your `pcsx2/cheats` folder. You can rename file if you want, but it must start with `07652DD9.` (including the dot) and end with `.pnach`.
 
 # Strings File Format
 
@@ -48,6 +49,12 @@ The input file should be a CSV where each row has the following format:
 
 Everything after the third column is ignored by the script, so you can use them for notes if you want. You can make the file in Excel or Google Sheets and then export it as a CSV.
 
+# Live Edit
+
+The `-l` option enables live edit mode. When enabled, the script will watch the input file for changes and update the pnach file automatically. This allows you to edit the strings in the CSV file while the game is running. Press `ctrl+c` to stop the script.
+
+PCSX2 will not automatically reload the pnach file when it changes, so you will not see your changes immediately. However, it does automatically reload cheats each time you save or load a save state, so you can press `F1` to create a save state which will quickly reload the pnach. Note that this will overrite whatever save state you have selected.
+
 # How it works
 
 This script hooks the string load function with custom code that instead loads the strings you specify in the CSV file. It does this by writing the strings to a block of memory and loads the strings from that block of memory instead of the original string table.
@@ -60,4 +67,4 @@ When you run the script, it first converts all the custom strings to hexadecimal
 
 # Credits
 
-Special thanks to [zzamizz](https://github.com/zzamizz) for extensive testing the script and assistance with reverse engineering the string load functions.
+Special thanks to [zzamizz](https://github.com/zzamizz) for extensive testing and assistance with reverse engineering the string load functions.
