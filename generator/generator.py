@@ -6,6 +6,7 @@ from datetime import datetime
 import struct
 import keystone
 from generator import strings, trampoline, pnach
+from utils import Assembler
 
 SLY2_NTSC_CRC = "07652DD9"
 SLY2_NTSC_HOOK = 0x2013e380
@@ -93,8 +94,8 @@ class Generator:
         Assembles the given assembly code to binary and converts it to a byte array
         """
         # Assemble the assembly code
-        assembler = keystone.Ks(keystone.KS_ARCH_MIPS, keystone.KS_MODE_MIPS32 + keystone.KS_MODE_LITTLE_ENDIAN)
-        binary, count = assembler.asm(asm_code)
+        assembler = Assembler(keystone.KS_ARCH_MIPS, keystone.KS_MODE_MIPS32 + keystone.KS_MODE_LITTLE_ENDIAN)
+        binary, count = assembler.assemble(asm_code)
 
         # Convert the binary to bytes
         machine_code_bytes = struct.pack('B' * len(binary), *binary)

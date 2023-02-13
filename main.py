@@ -8,7 +8,7 @@ from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
 from generator import Generator
 
-DEBUG_FILE_OUTPUT = True
+DEBUG_FILE_OUTPUT = False
 
 def main():
     """

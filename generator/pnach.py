@@ -203,7 +203,9 @@ class Pnach:
         with open(filename, "w+", encoding="iso-8859-1") as f:
             if self._header != "":
                 f.write(self._header)
-            f.write(self.code_lines)
+            for chunk in self._chunks:
+                f.write(str(chunk))
+                f.write("\n")
 
     # String from pnach lines
     def __str__(self):

@@ -22,7 +22,7 @@ class Assembler():
         # Convert the binary to bytes
         bytes = struct.pack('B' * len(encoding), *encoding)
 
-        return bytes
+        return bytes, count
     
     def assemble_to_file(self, code, output_file):
         """
