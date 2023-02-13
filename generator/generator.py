@@ -56,7 +56,7 @@ class Generator:
             self.code_address = SLY2_PAL_ASM_DEFAULT if code_address is None else code_address
         else:
             raise Exception(f"Error: Region {region} not supported, must be `ntsc` or `pal`")
-        
+
         # Set hook address based on region
         self.hook_adr = SLY2_NTSC_HOOK if self.region == "ntsc" else SLY2_PAL_HOOK
 
@@ -119,7 +119,7 @@ class Generator:
         """
         if (self.verbose):
             print(f"Reading strings from {csv_file} to 0x{self.strings_adr:X}...")
-        
+
         # Ensure file exists
         if (not os.path.isfile(csv_file)):
             raise Exception(f"Error: File {csv_file} does not exist")
@@ -218,33 +218,41 @@ class Generator:
             + f"date: {timestamp}\n"
 
         # Add all mod chunks to final pnach
-        final_pnach = pnach.Pnach(header=header_lines)
-        final_pnach.add_chunk(hook_chunk)
-        final_pnach.add_chunk(mod_chunk)
-        final_pnach.add_chunk(auto_strings_chunk)
+        final_mod_pnach = pnach.Pnach(header=header_lines)
+        final_mod_pnach.add_chunk(hook_chunk)
+        final_mod_pnach.add_chunk(mod_chunk)
+        final_mod_pnach.add_chunk(auto_strings_chunk)
         for chunk in manual_sting_chunks:
-            final_pnach.add_chunk(chunk)
-        
-        # Add conditional to cancel hook if language is wrong
-        cancel_hook_chunk = pnach.Chunk(self.hook_adr)
-        if not self.lang is None:
-            # Generate pnach which cancels the function hook if the language is not the one we want
-            cancel_hook_asm = "jr $ra\nlw $v0, 0x4($a0)"
-            cancel_hook_bytes, count = self.assemble(cancel_hook_asm)
-            cancel_hook_chunk.set_bytes(cancel_hook_bytes)
-            cancel_hook_chunk.set_header(f"comment=Loading {len(cancel_hook_bytes)} bytes of machine code (hook cancel) at {hex(self.code_address)}...")
-            
-            # Add chunk and conditional to final pnach
-            final_pnach.add_chunk(cancel_hook_chunk)
-            final_pnach.add_conditional(0x2E9254, self.lang, 'neq')
-
+            final_mod_pnach.add_chunk(chunk)
 
         # Print final pnach if verbose
         if (self.verbose):
-            print("Final pnach:")
-            print(final_pnach)
+            print("Final mod pnach:")
+            print(final_mod_pnach)
 
-        return str(final_pnach)
+        if self.lang is None:
+            return str(final_mod_pnach)
+
+        # Add language check conditional to final pnach
+        final_mod_pnach.add_conditional(0x2E9254, self.lang, 'eq')
+
+        # Generate pnach which cancels the function hook by setting the asm back to the original
+        cancel_hook_pnach = pnach.Pnach()
+        cancel_hook_asm = "jr $ra\nlw $v0, 0x4($a0)"
+        cancel_hook_bytes, count = self.assemble(cancel_hook_asm)
+        cancel_hook_chunk = pnach.Chunk(self.hook_adr, cancel_hook_bytes,
+            f"comment=Loading {len(cancel_hook_bytes)} bytes of machine code (hook cancel) at {hex(self.hook_adr)}...")
+        # Add chunk and conditional to pnach
+        cancel_hook_pnach.add_chunk(cancel_hook_chunk)
+
+        # Add conditional to cancel the function hook if game is set to the wrong language
+        cancel_hook_pnach.add_conditional(0x2E9254, self.lang, 'neq')
+
+        if (self.verbose):
+            print("Cancel hook pnach:")
+            print(cancel_hook_pnach)
+
+        return str(final_mod_pnach) + str(cancel_hook_pnach)
 
     def generate_pnach_file(self, input_file, output_dir="./out/", mod_name=None, author="Sly String Toolkit"):
         """
