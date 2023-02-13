@@ -125,19 +125,19 @@ class Generator:
             raise Exception(f"Error: File {csv_file} does not exist")
 
         strings_obj = strings.Strings(csv_file, self.strings_adr)
-        strings_pnach, string_pointers = strings_obj.gen_pnach()
-        # set strings header with address of strings, number of strings, and number of bytes
-        strings_pnach.set_header(f"comment=Loading {len(string_pointers)} strings ({len(strings_pnach.lines)*4} bytes) at {hex(self.strings_adr)}...")
+        auto_strings_chunk, manual_string_chunks, string_pointers = strings_obj.gen_pnach_chunks()
 
         # Print string pointers if verbose
         if (self.verbose):
             print("String pointers:")
             for string_id, string_ptr in string_pointers:
                 print(f"ID: {hex(string_id)} | Ptr: {hex(string_ptr)}")
-            print("Strings pnach:")
-            print(strings_pnach)
+            print("Auto strings pnach:")
+            print(auto_strings_chunk)
+            print("Manual strings pnach:")
+            print([str(chunk) for chunk in manual_string_chunks].join("\n"))
 
-        return strings_pnach, string_pointers
+        return auto_strings_chunk, manual_string_chunks, string_pointers
 
     def _gen_asm(self, string_pointers):
         """
@@ -170,27 +170,27 @@ class Generator:
             print("Generating pnach file...")
 
         # Generate mod pnach code
-        mod_pnach = pnach.Pnach(self.code_address, machine_code_bytes)
-        mod_pnach.set_header(f"comment=Loading {len(machine_code_bytes)} bytes of machine code at {hex(self.code_address)}...")
+        mod_chunk = pnach.Chunk(self.code_address, machine_code_bytes)
+        mod_chunk.set_header(f"comment=Writing {len(machine_code_bytes)} bytes of machine code at {hex(self.code_address)}")
 
         # Print mod pnach code if verbose
         if (self.verbose):
             print("Mod pnach:")
-            print(mod_pnach)
+            print(mod_chunk)
 
         # Generate pnach for function hook to jump to trampoline code
         hook_asm = f"j {self.code_address}\n"
         hook_code, count = self.assemble(hook_asm)
 
-        hook_pnach = pnach.Pnach(self.hook_adr, hook_code)
-        hook_pnach.set_header(f"comment=Hooking string load function at {hex(self.hook_adr)}...")
+        hook_chunk = pnach.Chunk(self.hook_adr, hook_code)
+        hook_chunk.set_header(f"comment=Hooking string load function at {hex(self.hook_adr)}")
 
         # Print hook pnach code if verbose
         if (self.verbose):
             print("Hook pnach:")
-            print(hook_pnach)
+            print(hook_chunk)
 
-        return mod_pnach, hook_pnach
+        return mod_chunk, hook_chunk
 
 
     def generate_pnach_lines(self, input_file, mod_name=None, author="Sly String Toolkit"):
@@ -198,23 +198,10 @@ class Generator:
         Generates the mod pnach lines from the given input file
         """
         # Generate the strings, asm code, and pnach files
-        strings_pnach, string_pointers = self._gen_strings_from_csv(input_file)
+        auto_strings_chunk, manual_sting_chunks, string_pointers = self._gen_strings_from_csv(input_file)
         trampoline_asm = self._gen_asm(string_pointers)
         trampoline_binary, count = self.assemble(trampoline_asm)
-        mod_pnach, hook_pnach = self._gen_code_pnach(trampoline_binary)
-
-        cancel_hook_str = ""
-        if not self.lang is None:
-            strings_pnach.add_conditional(0x2E9254, self.lang)
-            mod_pnach.add_conditional(0x2E9254, self.lang)
-
-            # Generate pnach which cancels the function hook if the language is not the one we want
-            cancel_hook_asm = f"jr $ra\nlw $v0, 0x4($a0)"
-            cancel_hook_code, count = self.assemble(cancel_hook_asm)
-            cancel_hook_pnach = pnach.Pnach(self.hook_adr, cancel_hook_code)
-            cancel_hook_pnach.set_header(f"comment=Loading {len(cancel_hook_code)} bytes of machine code at {hex(self.code_address)}...\nCancel the hook if language is wrong")
-            cancel_hook_pnach.add_conditional(0x2E9254, self.lang, "neq")
-            cancel_hook_str = str(cancel_hook_pnach)
+        mod_chunk, hook_chunk = self._gen_code_pnach(trampoline_binary)
 
         # Set the mod name (default is same as input file)
         if (mod_name is None or mod_name == ""):
@@ -228,17 +215,36 @@ class Generator:
             + f"{mod_name} by {author}\n" \
             + "Pnach generated with Sly String Toolkit\n" \
             + "https://github.com/theonlyzac/sly-string-toolkit\n" \
-            + f"date: {timestamp}\n\n"
+            + f"date: {timestamp}\n"
 
-        # Set up final pnach lines
-        final_pnach_lines = header_lines + str(hook_pnach) + str(mod_pnach) + str(strings_pnach) + cancel_hook_str + "comment=Done!\n"
+        # Add all mod chunks to final pnach
+        final_pnach = pnach.Pnach(header=header_lines)
+        final_pnach.add_chunk(hook_chunk)
+        final_pnach.add_chunk(mod_chunk)
+        final_pnach.add_chunk(auto_strings_chunk)
+        for chunk in manual_sting_chunks:
+            final_pnach.add_chunk(chunk)
+        
+        # Add conditional to cancel hook if language is wrong
+        cancel_hook_chunk = pnach.Chunk(self.hook_adr)
+        if not self.lang is None:
+            # Generate pnach which cancels the function hook if the language is not the one we want
+            cancel_hook_asm = "jr $ra\nlw $v0, 0x4($a0)"
+            cancel_hook_bytes, count = self.assemble(cancel_hook_asm)
+            cancel_hook_chunk.set_bytes(cancel_hook_bytes)
+            cancel_hook_chunk.set_header(f"comment=Loading {len(cancel_hook_bytes)} bytes of machine code (hook cancel) at {hex(self.code_address)}...")
+            
+            # Add chunk and conditional to final pnach
+            final_pnach.add_chunk(cancel_hook_chunk)
+            final_pnach.add_conditional(0x2E9254, self.lang, 'neq')
+
 
         # Print final pnach if verbose
         if (self.verbose):
             print("Final pnach:")
-            print(final_pnach_lines)
+            print(final_pnach)
 
-        return final_pnach_lines
+        return str(final_pnach)
 
     def generate_pnach_file(self, input_file, output_dir="./out/", mod_name=None, author="Sly String Toolkit"):
         """

@@ -40,11 +40,11 @@
             "args": [
                 "examples/pirate.csv",
                 "-rntsc",
-                "-nSly 2 Test Strings (NTSC)"
+                "-nSly 2 PIrate Strings (NTSC)"
             ],
         },
         {
-            "name": "Sly 2 PIrate Strings (PAL)",
+            "name": "Sly 2 Pirate Strings (PAL)",
             "type": "python",
             "request": "launch",
             "program": "main.py",
@@ -53,7 +53,35 @@
             "args": [
                 "examples/pirate.csv",
                 "-rpal",
-                "-nSly 2 Test Strings (PAL)"
+                "-nSly 2 Pirate Strings (PAL)"
+            ],
+        },
+        {
+            "name": "Sly 2 English EN Test (PAL)",
+            "type": "python",
+            "request": "launch",
+            "program": "main.py",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "args": [
+                "examples/test.csv",
+                "-rntsc",
+                "-nSly 2 English EN Test (NTSC)",
+                "-den"
+            ],
+        },
+        {
+            "name": "Sly 2 Finnish FI Test (PAL)",
+            "type": "python",
+            "request": "launch",
+            "program": "main.py",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "args": [
+                "examples/test.csv",
+                "-rpal",
+                "-nSly 2 Finnish FI Test (PAL)",
+                "-dfi"
             ],
         }
     ]

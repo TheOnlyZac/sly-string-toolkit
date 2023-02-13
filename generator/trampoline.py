@@ -22,17 +22,17 @@ class Trampoline:
         Generates the trampoline assembly code from the ID/string pairs on the object
         """
         asm = "trampoline:\n"
-        asm += "lw $v0, 0x4($a0)\n\n"
+        asm += "lw $v0, 0x4($a0)\n"
 
         for string_id, string_ptr in self.id_string_pairs:
             asm += f"# check matched string ID {string_id}\n"
             asm += f"ori $t0, $zero, {string_id}\n"
             asm += f"bne $t0, $a1, done{string_id}\n"
-            asm += "nop\n\n"
+            asm += "nop\n"
             asm += f"lui $v0, {hex(string_ptr >> 16)}\n"
             asm += f"ori $v0, $v0, {hex(string_ptr & 0xFFFF)}\n"
-            asm += "nop\n\n"
-            asm += f"done{string_id}:\n\n"
+            asm += "nop\n"
+            asm += f"done{string_id}:\n"
 
         asm += "# return from the original function\n"
         asm += "return:\n"
