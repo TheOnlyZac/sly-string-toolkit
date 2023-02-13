@@ -1,14 +1,13 @@
 """
-Extracts the string table from a memory dump to a csv file.
+Script for extracting the string table from a ps2 memory dump to a csv file.
 """
 import argparse
 
 def dump_string_table(mem, string_table_start, mem_dump_start=0x00000000):
     """
-    Dumps the string IDs and strings to a csv file.
-    The string table is an array list of id/string pointer pairs.
+    Dumps the string table from a memory dump to a csv file.
+    The original string table is an array list of id/string pointer pairs.
     """
-
     with open("strings.csv", "w+", encoding="utf-8") as file:
         cur = string_table_start
         i = 0
@@ -41,9 +40,9 @@ def dump_string_table(mem, string_table_start, mem_dump_start=0x00000000):
 if __name__ == "__main__":
     # get the command line arguments
     parser = argparse.ArgumentParser(description="Extracts the string table from a memory dump to a csv file.")
-    parser.add_argument("mem_file", help="The memory dump file.")
-    parser.add_argument("offset", help="The start of the string table.", type=lambda x: int(x, 16))
-    parser.add_argument("-s", "--start", help="The start of the memory dump.", type=lambda x: int(x, 16), default=0x00000000)
+    parser.add_argument("mem-file", help="The PS2 memory dump file.")
+    parser.add_argument("offset", help="The start offset of the string table in the mem dump.", type=lambda x: int(x, 16))
+    parser.add_argument("-s", "--start", help="The start offset of the memory dump relative to the PS2 EE memory base.", type=lambda x: int(x, 16), default=0x00000000)
     args = parser.parse_args()
 
     # read the memory dump
