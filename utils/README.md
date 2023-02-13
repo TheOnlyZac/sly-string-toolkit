@@ -14,8 +14,10 @@ If your memory dump doesn't start from the PCSX2 elf base (usually 0x20000000), 
 
 There is a sample `mem.bin` file in this directory that you can use to test this script. It is small segment of memory from Cairo in the PAL version. The string table starts at offset `0x10`, and the memdump begins at 0x204BA440, so run the script with `python dump_string_table.py mem.bin 10 -s 4BA440`.
 
-[//]: <> (## check_pnach_compat.py)
+## check_pnach_compat.py
 
-[//]: <> (Usage: `python check_pnach_compat.py <path to first pnach> <path to second pnach>`)
+`python check_pnach_compat.py <path to first pnach> <path to second pnach>`
 
-[//]: <> (This script will check if two pnach files are compatible with each other. When run, it will ouput a list of all the addresses that are in both pnach files. If the pnach files are compatible, this list should be empty and it will tell you as much.)
+This script will check if two pnach files are compatible with each other. When run, it will ouput a list of all the addresses that are in both pnach files. If the pnach files are compatible, this list should be empty and it will tell you as much.
+
+Two pnach files are compatible if they don't both write to the same memory addresses (unless the writes are qualified by conditional statements that are mutually exclusive). In its current state, the script does not check for conditional statements and assumes that all writes are unconditional.
