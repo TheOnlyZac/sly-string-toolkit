@@ -1,15 +1,14 @@
-"""Extracts the string table from a memory dump to a csv file."""
+"""
+Script for extracting the string table from a ps2 memory dump to a csv file.
+"""
+import argparse
 
-STRING_TABLE_START = 0x10
-
-def dump_string_table(mem, string_table_start):
-    """Dumps the string IDs and strings to a csv file.
-    The string table is an array list of id/string pointer pairs.
-    The strings are null terminated and the end of the array will be marked by a null pointer."""
-
-    with open("string_table.csv", "w+", encoding="iso-8859-1") as file:
-        file.write("id,string\n")
-        
+def dump_string_table(mem, string_table_start, mem_dump_start=0x00000000):
+    """
+    Dumps the string table from a memory dump to a csv file.
+    The original string table is an array list of id/string pointer pairs.
+    """
+    with open("strings.csv", "w+", encoding="utf-8") as file:
         cur = string_table_start
         i = 0
 
@@ -18,18 +17,17 @@ def dump_string_table(mem, string_table_start):
 
             id, pointer = int.from_bytes(mem[cur:cur+4], "little"), int.from_bytes(mem[cur+4:cur+8], "little")
             print(f"{id:X}, {pointer:X}")
-            if pointer == 0x000000 or i > 500:
+            if (pointer == 0x000000) or (id > 0xFFFF) or (i > 1000):
                 break
-            pointer = pointer - 0x4BA440
+            pointer = pointer - mem_dump_start
             
             string = ""
             while True:
-                # subtract 0x4BA440 from the pointer to get the offset in the file
-
-                char = mem[pointer:pointer+1]
-                if char == b"\x00" or char == b'':
+                byte = mem[pointer:pointer+1]
+                if byte == b"\x00" or byte == b'':
                     break
-                string += char.decode("iso-8859-1")
+                char = byte.decode("iso-8859-1")
+                string += char
                 pointer += 1
 
             # check if string contains quotation marks, commas, or newlines
@@ -37,15 +35,20 @@ def dump_string_table(mem, string_table_start):
                 # if so, wrap the string in quotation marks
                 string = f"\"{string}\""
             file.write(f"{id},{string}\n")
-            cur += 8
-        
-def main():
-    mem = None
-    with open("mem.bin", "rb") as file:
-        mem = file.read()
-
-    dump_string_table(mem, STRING_TABLE_START)
-        
+            cur += 8        
 
 if __name__ == "__main__":
-    main()
+    # get the command line arguments
+    parser = argparse.ArgumentParser(description="Extracts the string table from a memory dump to a csv file.")
+    parser.add_argument("mem-file", help="The PS2 memory dump file.")
+    parser.add_argument("offset", help="The start offset of the string table in the mem dump.", type=lambda x: int(x, 16))
+    parser.add_argument("-s", "--start", help="The start offset of the memory dump relative to the PS2 EE memory base.", type=lambda x: int(x, 16), default=0x00000000)
+    args = parser.parse_args()
+
+    # read the memory dump
+    memory = None
+    with open(args.mem_file, "rb") as file:
+        memory = file.read()
+
+    # dump the string table
+    dump_string_table(memory, args.offset, args.start)
