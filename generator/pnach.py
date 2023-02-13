@@ -71,6 +71,9 @@ class Chunk:
         for i in range(0, self.size, 4):
             address = self._address + i
             bytes = self._bytes[i:i+4]
+            # reverse byte order
+            bytes = bytes[::-1]
+
             value = int.from_bytes(bytes, 'big')
             line = f"patch=1,EE,{address:X},extended,{value:08X}"
             code_lines.append(line)

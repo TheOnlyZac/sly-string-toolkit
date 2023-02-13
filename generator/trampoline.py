@@ -28,10 +28,10 @@ class Trampoline:
             asm += f"# check matched string ID {string_id}\n"
             asm += f"ori $t0, $zero, {string_id}\n"
             asm += f"bne $t0, $a1, done{string_id}\n"
-            asm += "nop\n"
+            #asm += "nop\n"
             asm += f"lui $v0, {hex(string_ptr >> 16)}\n"
             asm += f"ori $v0, $v0, {hex(string_ptr & 0xFFFF)}\n"
-            asm += "nop\n"
+            #asm += "nop\n"
             asm += f"done{string_id}:\n"
 
         asm += "# return from the original function\n"

@@ -40,7 +40,7 @@
             "args": [
                 "examples/pirate.csv",
                 "-rntsc",
-                "-nSly 2 PIrate Strings (NTSC)"
+                "-nSly 2 Pirate Strings (NTSC)"
             ],
         },
         {

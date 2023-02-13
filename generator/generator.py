@@ -193,9 +193,9 @@ class Generator:
         return mod_chunk, hook_chunk
 
 
-    def generate_pnach_lines(self, input_file, mod_name=None, author="Sly String Toolkit"):
+    def generate_pnach_str(self, input_file, mod_name=None, author="Sly String Toolkit"):
         """
-        Generates the mod pnach lines from the given input file
+        Generates the mod pnach text from the given input file
         """
         # Generate the strings, asm code, and pnach files
         auto_strings_chunk, manual_sting_chunks, string_pointers = self._gen_strings_from_csv(input_file)
@@ -273,7 +273,7 @@ class Generator:
             mod_name = os.path.splitext(os.path.basename(input_file))[0]
 
         # Generate the pnach
-        pnach_lines = self.generate_pnach_lines(input_file, mod_name, author)
+        pnach_lines = self.generate_pnach_str(input_file, mod_name, author)
 
         # Write the final pnach file
         outfile = os.path.join(output_dir, f"{crc}.{mod_name}.pnach")
