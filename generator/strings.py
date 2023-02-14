@@ -55,7 +55,7 @@ class Strings:
                         strings.append((int(row[0]), row[1].encode('iso-8859-1') + b'\x00'))
                     except UnicodeEncodeError as err:
                         print(f"Failed to encode string '{row[1]}'\nError: {err}")
-                        strings.append((int(row[0]), "".encode('iso-8859-1') + b'\x00'))
+                        strings.append((int(row[0]), "[error encoding string]".encode('iso-8859-1') + b'\x00'))
 
         # 2 - Generate the pnach file
 

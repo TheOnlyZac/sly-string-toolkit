@@ -46,15 +46,21 @@ class Generator:
         """
         # Set region
         self.region = region.lower()
-        self.lang = LANGUAGE_IDS[lang.lower()] if lang is not None else None
 
-        # Set code and strings addresses based on region
+        # Set code + strings addresses and lang based on region
         if (region == "ntsc"):
             self.strings_adr = SLY2_NTSC_STRINGS_DEFAULT if strings_address is None else strings_address
             self.code_address = SLY2_NTSC_ASM_DEFAULT if code_address is None else code_address
+            
+            if (lang is not None):
+                print("Warning: Language selection is not supported for NTSC region, using English")
+                self.lang = LANGUAGE_IDS["en"]
+            else:
+                self.lang = None
         elif (region == "pal"):
             self.strings_adr = SLY2_PAL_STRINGS_DEFAULT if strings_address is None else strings_address
             self.code_address = SLY2_PAL_ASM_DEFAULT if code_address is None else code_address
+            self.lang = LANGUAGE_IDS[lang.lower()] if lang is not None else None
         else:
             raise Exception(f"Error: Region {region} not supported, must be `ntsc` or `pal`")
 

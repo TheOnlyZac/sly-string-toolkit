@@ -64,9 +64,9 @@
             "console": "integratedTerminal",
             "justMyCode": true,
             "args": [
-                "examples/test.csv",
-                "-rntsc",
-                "-nSly 2 English EN Test (NTSC)",
+                "examples/EN-test.csv",
+                "-rpal",
+                "-nSly 2 English EN Test (PAL)",
                 "-den"
             ],
         },
@@ -78,10 +78,21 @@
             "console": "integratedTerminal",
             "justMyCode": true,
             "args": [
-                "examples/test.csv",
+                "examples/FI-test.csv",
                 "-rpal",
                 "-nSly 2 Finnish FI Test (PAL)",
                 "-dfi"
+            ],
+        },
+        {
+            "name": "Test Assembler Util Script",
+            "type": "python",
+            "request": "launch",
+            "program": "pos_mod_temp.py",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "args": [
+                "pos_mod.s"
             ],
         }
     ]
