@@ -8,6 +8,7 @@ from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
 from generator import Generator
 
+DEBUG_FILE_OUTPUT = False
 
 def main():
     """
@@ -22,9 +23,9 @@ def main():
     parser.add_argument('-s', '--strings-address', type=str, help='set the address where the pnach will inject the custom strings')
     parser.add_argument('-n', '--mod-name', type=str, help='name of the mod (default is same as input file)')
     parser.add_argument('-a', '--author', type=str, help='name of the author (default is Sly String Toolkit)', default="Sly String Toolkit")
+    parser.add_argument('-d', '--dialect', type=str, help='the language of the strings file')
     parser.add_argument('-v', '--verbose', action='store_true', help='show verbose output')
     parser.add_argument('-l', '--live-edit', action='store_true', help='enable live editing of strings csv file')
-    parser.add_argument('-d', '--debug', action='store_true', help='output asm and bin files for debugging')
     args = parser.parse_args()
 
     # Make sure the input file exists
@@ -38,10 +39,10 @@ def main():
 
     # Set verbose and debug flags on generator
     Generator.set_verbose(args.verbose)
-    Generator.set_debug(args.debug)
+    Generator.set_debug(DEBUG_FILE_OUTPUT)
 
     # Create the generator and generate the pnach
-    generator = Generator(args.region, args.strings_address, args.code_address)
+    generator = Generator(args.region, args.dialect, args.strings_address, args.code_address)
 
     # Check if live-edit flag is set
     if args.live_edit:

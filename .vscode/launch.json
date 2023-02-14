@@ -1,0 +1,99 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Sly 2 Test Strings (NTSC)",
+            "type": "python",
+            "request": "launch",
+            "program": "main.py",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "args": [
+                "examples/test.csv",
+                "-rntsc",
+                "-nSly 2 Test Strings (NTSC)"
+            ],
+        },
+        {
+            "name": "Sly 2 Test Strings (PAL)",
+            "type": "python",
+            "request": "launch",
+            "program": "main.py",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "args": [
+                "examples/test.csv",
+                "-rpal",
+                "-nSly 2 Test Strings (PAL)"
+            ],
+        },
+        {
+            "name": "Sly 2 Pirate Strings (NTSC)",
+            "type": "python",
+            "request": "launch",
+            "program": "main.py",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "args": [
+                "examples/pirate.csv",
+                "-rntsc",
+                "-nSly 2 Pirate Strings (NTSC)"
+            ],
+        },
+        {
+            "name": "Sly 2 Pirate Strings (PAL)",
+            "type": "python",
+            "request": "launch",
+            "program": "main.py",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "args": [
+                "examples/pirate.csv",
+                "-rpal",
+                "-nSly 2 Pirate Strings (PAL)"
+            ],
+        },
+        {
+            "name": "Sly 2 English EN Test (PAL)",
+            "type": "python",
+            "request": "launch",
+            "program": "main.py",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "args": [
+                "examples/EN-test.csv",
+                "-rpal",
+                "-nSly 2 English EN Test (PAL)",
+                "-den"
+            ],
+        },
+        {
+            "name": "Sly 2 Finnish FI Test (PAL)",
+            "type": "python",
+            "request": "launch",
+            "program": "main.py",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "args": [
+                "examples/FI-test.csv",
+                "-rpal",
+                "-nSly 2 Finnish FI Test (PAL)",
+                "-dfi"
+            ],
+        },
+        {
+            "name": "Test Assembler Util Script",
+            "type": "python",
+            "request": "launch",
+            "program": "pos_mod_temp.py",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "args": [
+                "pos_mod.s"
+            ],
+        }
+    ]
+}

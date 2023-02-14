@@ -6,15 +6,16 @@ This is a toolkit for making string replacement mods for *Sly 2: Band of Thieves
 # Usage
 
 `python main.py <input_csv> <options>`
-* `<input_csv>` - The name of the input csv file
 
 The script supports the following optional arguments:
 
 * `-o <output_dir>` - The output directory for the pnach file (default is `./out/`)
 * `-n <mod_name>` - The name of the mod. The output file will be `<crc>.<mod name>.pnach` (default is the same as the input file)
 * `-r <region>` - The region of the game. Can be `ntsc` or `pal` (default is `ntsc`)
+* `-d <dialect>` - The language the pnach should work for (PAL only). If not set, it will affect all languages.
+  * Can be `en`, `fr`, `it`, `de`, `es`, `nd`, `pt`, `da`, `fi`, `no`, or `sv`.
+  * Pnach files for multiple languages are not compatible with one another.
 * `-l` - Enable live edit mode. This will allow you to edit the strings in the csv and the pnach will automatically update.
-* `-d` - Enable debug file output
 * `-v` - Enable verbose output
 * `-h` - Show help
 
@@ -27,17 +28,17 @@ The script supports the following optional arguments:
 3. Install the dependencies with `pip install -r requirements.txt`
 
 4. Run `python main.py <input_file>` to generate the `.pnach` file.
-   * Use the `-o` argument to specify the output directory.
+   * Use the `-o` argument to specify the output directory if desired.
 
 6. Put the `.pnach` file in your `pcsx2/cheats` folder, enable cheats, and start the game.
 
 # Output 
 
-The script will output one pnach file. It contains the assembly code to load the custom strings and the strings themselves.
+The script will output one pnach file. It contains the assembly code to load the custom strings as well as the strings themselves.
 
 You should put this file in your `pcsx2/cheats` folder. You can rename file if you want, but it must start with `07652DD9.` (including the dot) and end with `.pnach`.
 
-# Strings File Format
+# Strings CSV Format
 
 The input file should be a CSV where each row has the following format:
 
