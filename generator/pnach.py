@@ -245,13 +245,13 @@ class Pnach:
             # Write lines in groups of 0xFF
             for i in range(0, num_lines, 0xFF):
                 # 16-bit conditional if-equal pnach line:
-                # patch=1,EE,Etnnvvvv,extended,0aaaaaaa
+                # patch=1,EE,E0nnvvvv,extended,taaaaaaa
                 # Compares value at address @a to value @v, and executes next @n code llines only if condition @t is met.
                 num_lines_remaining = num_lines - i
                 num_lines_to_write = 0xFF if num_lines_remaining > 0xFF else num_lines_remaining
                 # Add conditional line
                 pnach_str += f"-- Conditional: if *{cond_address:X} {cond_operator} 0x{cond_value:X} do {num_lines_to_write} lines\n"
-                pnach_str += f"patch=1,EE,E{cond_type:1X}{num_lines_to_write:02X}0000,extended,0{cond_address:07X}\n"
+                pnach_str += f"patch=1,EE,E0{num_lines_to_write:02X}{cond_value:04X},extended,{cond_type:1X}{cond_address:07X}\n"
                 # Write lines to pnach
                 pnach_str += '\n'.join(lines[i:i + num_lines_to_write]) + "\n"
         

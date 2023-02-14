@@ -247,6 +247,11 @@ class Generator:
         cancel_hook_pnach = pnach.Pnach()
         cancel_hook_asm = "jr $ra\nlw $v0, 0x4($a0)"
         cancel_hook_bytes, count = self.assemble(cancel_hook_asm)
+
+        # Keystone does this annoying thing where it always adds a dummy nop after a jump
+        # so we need to trim out the middle 4 bytes
+        cancel_hook_bytes = cancel_hook_bytes[:4] + cancel_hook_bytes[8:]
+
         cancel_hook_chunk = pnach.Chunk(self.hook_adr, cancel_hook_bytes,
             f"comment=Loading {len(cancel_hook_bytes)} bytes of machine code (hook cancel) at {hex(self.hook_adr)}...")
         # Add chunk and conditional to pnach
