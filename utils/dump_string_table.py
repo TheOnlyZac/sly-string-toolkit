@@ -8,7 +8,7 @@ def dump_string_table(mem, string_table_start, mem_dump_start=0x00000000):
     Dumps the string table from a memory dump to a csv file.
     The original string table is an array list of id/string pointer pairs.
     """
-    with open("strings.csv", "w+", encoding="utf-8") as file:
+    with open("strings.csv", "w+", encoding="iso-8859-1") as file:
         cur = string_table_start
         i = 0
 

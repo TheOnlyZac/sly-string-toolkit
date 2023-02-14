@@ -120,7 +120,7 @@ class Generator:
 
         return machine_code_bytes, count
 
-    def _gen_strings_from_csv(self, csv_file):
+    def _gen_strings_from_csv(self, csv_file, csv_encoding="utf-8"):
         """
         Generates the strings pnach and populate string pointers
         """
@@ -131,7 +131,7 @@ class Generator:
         if (not os.path.isfile(csv_file)):
             raise Exception(f"Error: File {csv_file} does not exist")
 
-        strings_obj = strings.Strings(csv_file, self.strings_adr)
+        strings_obj = strings.Strings(csv_file, self.strings_adr, csv_encoding)
         auto_strings_chunk, manual_string_chunks, string_pointers = strings_obj.gen_pnach_chunks()
 
         # Print string pointers if verbose
@@ -142,7 +142,7 @@ class Generator:
             print("Auto strings pnach:")
             print(auto_strings_chunk)
             print("Manual strings pnach:")
-            print([str(chunk) for chunk in manual_string_chunks].join("\n"))
+            print('\n'.join([str(chunk) for chunk in manual_string_chunks]))
 
         return auto_strings_chunk, manual_string_chunks, string_pointers
 
@@ -200,12 +200,12 @@ class Generator:
         return mod_chunk, hook_chunk
 
 
-    def generate_pnach_str(self, input_file, mod_name=None, author="Sly String Toolkit"):
+    def generate_pnach_str(self, input_file, mod_name=None, author="Sly String Toolkit", csv_encoding="utf-8"):
         """
         Generates the mod pnach text from the given input file
         """
         # Generate the strings, asm code, and pnach files
-        auto_strings_chunk, manual_sting_chunks, string_pointers = self._gen_strings_from_csv(input_file)
+        auto_strings_chunk, manual_sting_chunks, string_pointers = self._gen_strings_from_csv(input_file, csv_encoding)
         trampoline_asm = self._gen_asm(string_pointers)
         trampoline_binary, count = self.assemble(trampoline_asm)
         mod_chunk, hook_chunk = self._gen_code_pnach(trampoline_binary)

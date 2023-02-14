@@ -200,7 +200,7 @@ class Pnach:
         """
         Writes the pnach lines to a file with header.
         """
-        with open(filename, "w+", encoding="iso-8859-1") as f:
+        with open(filename, "w+", encoding="utf-8") as f:
             if self._header != "":
                 f.write(self._header)
             for chunk in self._chunks:
