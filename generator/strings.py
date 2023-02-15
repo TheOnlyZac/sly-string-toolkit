@@ -3,7 +3,7 @@ Thie file contains the Strings class, which generates a pnach file with the stri
 and returns a tuple with the pnach object and the array of pointers to the strings.
 """
 import csv
-import chardet
+from typing import List, Tuple
 from generator import pnach
 
 class Strings:
@@ -11,37 +11,28 @@ class Strings:
     This class reads a csv file and generates a pnach file with the strings
     and popoulates an array of pointers to the strings
     """
-    def __init__(self, csv_file, start_address):
+    def __init__(self, csv_file: str, start_address: int, csv_encoding: str = 'utf-8'):
         """
         Initializes the Strings object
         """
         self.csv_file = csv_file
+        self.csv_encoding = csv_encoding
         self.start_address = start_address
 
-    def gen_pnach_chunks(self):
+    def gen_pnach_chunks(self) -> Tuple[pnach.Chunk, List[pnach.Chunk], List[Tuple[int, int]]]:
         """
         Generates a pnach file with the strings from the csv file and returns
         a tuple with the pnach object and the array of pointers to the strings
-        
+
         CSV rows are in the following format:
         <string_id>,<string>,<optional_target_address>
         """
         # 1 - Read the csv file and extract the strings
         id_string_pointer_pairs = []
 
-        # check the encoding of the csv file
-        csv_encoding = None
-        with open(self.csv_file, 'rb') as file:
-            try:
-                csv_encoding = chardet.detect(file.read())['encoding']
-            except KeyError:
-                print("Failed to detect encoding of csv file, defaulting to utf-8.")
-                csv_encoding = 'utf-8'
-
-
         strings = []
         manual_address_strings = []
-        with open(self.csv_file, 'r', encoding=csv_encoding) as file:
+        with open(self.csv_file, 'r', encoding=self.csv_encoding) as file:
             reader = csv.reader(file)
             # iterate over rows and add the string to the list, checking if the string has a target address
             # create an array of strings from the file
@@ -85,7 +76,7 @@ class Strings:
         auto_chunk.set_header(f"comment=Writing {len(id_string_pointer_pairs)} strings ({len(auto_chunk.get_bytes())} bytes) at {hex(self.start_address)}")
         for chunk in manual_chunks:
             chunk.set_header(f"comment=Writing 1 string ({len(chunk.get_bytes())} bytes) at {hex(self.start_address)}")
-        
+
         # 4 - Return the pnach lines and the array of pointers
         return (auto_chunk, manual_chunks, id_string_pointer_pairs)
 

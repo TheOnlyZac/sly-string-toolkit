@@ -3,6 +3,7 @@ This file contains the generator class, which generates a pnach file from a CSV 
 """
 import os
 from datetime import datetime
+from typing import List, Tuple
 import struct
 import keystone
 from generator import strings, trampoline, pnach
@@ -40,7 +41,7 @@ class Generator:
     verbose = False
     debug = False
 
-    def __init__(self, region="ntsc", lang=None, strings_address=None, code_address=None):
+    def __init__(self, region: str = "ntsc", lang: str = None, strings_address: int = None, code_address: int = None):
         """
         Initializes the generator with the specified region and addresses
         """
@@ -48,16 +49,16 @@ class Generator:
         self.region = region.lower()
 
         # Set code + strings addresses and lang based on region
-        if (region == "ntsc"):
+        if region == "ntsc":
             self.strings_adr = SLY2_NTSC_STRINGS_DEFAULT if strings_address is None else strings_address
             self.code_address = SLY2_NTSC_ASM_DEFAULT if code_address is None else code_address
-            
-            if (lang is not None):
+
+            if lang is not None:
                 print("Warning: Language selection is not supported for NTSC region, using English")
                 self.lang = LANGUAGE_IDS["en"]
             else:
                 self.lang = None
-        elif (region == "pal"):
+        elif region == "pal":
             self.strings_adr = SLY2_PAL_STRINGS_DEFAULT if strings_address is None else strings_address
             self.code_address = SLY2_PAL_ASM_DEFAULT if code_address is None else code_address
             self.lang = LANGUAGE_IDS[lang.lower()] if lang is not None else None
@@ -68,34 +69,34 @@ class Generator:
         self.hook_adr = SLY2_NTSC_HOOK if self.region == "ntsc" else SLY2_PAL_HOOK
 
         # Ensure addresses are ints
-        if (type(self.strings_adr) == str):
+        if isinstance(self.strings_adr, str):
             self.strings_adr = int(self.strings_adr, 16)
-        if (type(self.code_address) == str):
+        if isinstance(self.code_address, str):
             self.code_address = int(self.code_address, 16)
-        if (type(self.hook_adr) == str):
+        if isinstance(self.hook_adr, str):
             self.hook_adr = int(self.hook_adr, 16)
 
 
     @staticmethod
-    def set_verbose(verbose):
+    def set_verbose(verbose: bool) -> None:
         """
         Sets the verbose flag
         """
         Generator.verbose = verbose
-        if (verbose):
+        if verbose:
             print("Verbose output enabled")
 
     @staticmethod
-    def set_debug(debug):
+    def set_debug(debug: bool) -> None:
         """
         Sets the debug flag
         """
         Generator.debug = debug
-        if (debug):
+        if debug:
             print("Debug output enabled")
 
     @staticmethod
-    def assemble(asm_code):
+    def assemble(asm_code: str) -> Tuple[bytes, int]:
         """
         Assembles the given assembly code to binary and converts it to a byte array
         """
@@ -107,73 +108,73 @@ class Generator:
         machine_code_bytes = struct.pack('B' * len(binary), *binary)
 
         # Print machine code bytes if verbose
-        if (Generator.verbose):
+        if Generator.verbose:
             print(f"Assembled {count} bytes of machine code")
             print("Machine code bytes:")
             print(binary)
 
         # Write machine code bytes to file if debug
-        if (Generator.debug):
+        if Generator.debug:
             print("Writing binary code to file...")
             with open("./out/mod.bin", "wb+") as file:
                 file.write(machine_code_bytes)
 
         return machine_code_bytes, count
 
-    def _gen_strings_from_csv(self, csv_file):
+    def _gen_strings_from_csv(self, csv_file: str, csv_encoding: str = "utf-8") -> Tuple[pnach.Chunk, List[pnach.Chunk], List[Tuple[int, int]]]:
         """
         Generates the strings pnach and populate string pointers
         """
-        if (self.verbose):
+        if self.verbose:
             print(f"Reading strings from {csv_file} to 0x{self.strings_adr:X}...")
 
         # Ensure file exists
-        if (not os.path.isfile(csv_file)):
+        if not os.path.isfile(csv_file):
             raise Exception(f"Error: File {csv_file} does not exist")
 
-        strings_obj = strings.Strings(csv_file, self.strings_adr)
+        strings_obj = strings.Strings(csv_file, self.strings_adr, csv_encoding)
         auto_strings_chunk, manual_string_chunks, string_pointers = strings_obj.gen_pnach_chunks()
 
         # Print string pointers if verbose
-        if (self.verbose):
+        if self.verbose:
             print("String pointers:")
             for string_id, string_ptr in string_pointers:
                 print(f"ID: {hex(string_id)} | Ptr: {hex(string_ptr)}")
             print("Auto strings pnach:")
             print(auto_strings_chunk)
             print("Manual strings pnach:")
-            print([str(chunk) for chunk in manual_string_chunks].join("\n"))
+            print('\n'.join([str(chunk) for chunk in manual_string_chunks]))
 
         return auto_strings_chunk, manual_string_chunks, string_pointers
 
-    def _gen_asm(self, string_pointers):
+    def _gen_asm(self, string_pointers: list) -> str:
         """
         Generates the mod assembly code
         """
-        if (self.verbose):
+        if self.verbose:
             print("Generating assembly code...")
 
         trampoline_obj = trampoline.Trampoline(string_pointers)
         mips_code = trampoline_obj.gen_asm()
 
         # Print assembly code if verbose
-        if (self.verbose):
+        if self.verbose:
             print("Assembly code:")
             print(mips_code)
 
         # Write assembly code to file if debug
-        if (self.debug):
+        if self.debug:
             print("Writing assembly code to file...")
             with open("./out/mod.asm", "w+", encoding="utf-8") as file:
                 file.write(mips_code)
 
         return mips_code
 
-    def _gen_code_pnach(self, machine_code_bytes):
+    def _gen_code_pnach(self, machine_code_bytes: bytes) -> Tuple[pnach.Chunk, pnach.Chunk]:
         """
         Generates the pnach object for the mod and hook code
         """
-        if (self.verbose):
+        if self.verbose:
             print("Generating pnach file...")
 
         # Generate mod pnach code
@@ -181,7 +182,7 @@ class Generator:
         mod_chunk.set_header(f"comment=Writing {len(machine_code_bytes)} bytes of machine code at {hex(self.code_address)}")
 
         # Print mod pnach code if verbose
-        if (self.verbose):
+        if self.verbose:
             print("Mod pnach:")
             print(mod_chunk)
 
@@ -193,19 +194,19 @@ class Generator:
         hook_chunk.set_header(f"comment=Hooking string load function at {hex(self.hook_adr)}")
 
         # Print hook pnach code if verbose
-        if (self.verbose):
+        if self.verbose:
             print("Hook pnach:")
             print(hook_chunk)
 
-        return mod_chunk, hook_chunk
+        return (mod_chunk, hook_chunk)
 
 
-    def generate_pnach_str(self, input_file, mod_name=None, author="Sly String Toolkit"):
+    def generate_pnach_str(self, input_file: str, mod_name: str = None, author: str = "Sly String Toolkit", csv_encoding: str = "utf-8") -> str:
         """
         Generates the mod pnach text from the given input file
         """
         # Generate the strings, asm code, and pnach files
-        auto_strings_chunk, manual_sting_chunks, string_pointers = self._gen_strings_from_csv(input_file)
+        auto_strings_chunk, manual_sting_chunks, string_pointers = self._gen_strings_from_csv(input_file, csv_encoding)
         trampoline_asm = self._gen_asm(string_pointers)
         trampoline_binary, count = self.assemble(trampoline_asm)
         mod_chunk, hook_chunk = self._gen_code_pnach(trampoline_binary)
@@ -233,7 +234,7 @@ class Generator:
             final_mod_pnach.add_chunk(chunk)
 
         # Print final pnach if verbose
-        if (self.verbose):
+        if self.verbose:
             print("Final mod pnach:")
             print(final_mod_pnach)
 
@@ -260,20 +261,20 @@ class Generator:
         # Add conditional to cancel the function hook if game is set to the wrong language
         cancel_hook_pnach.add_conditional(0x2E9254, self.lang, 'neq')
 
-        if (self.verbose):
+        if self.verbose:
             print("Cancel hook pnach:")
             print(cancel_hook_pnach)
 
         return str(final_mod_pnach) + str(cancel_hook_pnach)
 
-    def generate_pnach_file(self, input_file, output_dir="./out/", mod_name=None, author="Sly String Toolkit"):
+    def generate_pnach_file(self, input_file: str, output_dir: str = "./out/", mod_name: str = None, author: str = "Sly String Toolkit", csv_encoding: str = "utf-8") -> None:
         """
         Generates a mod pnach and writes it to a file
         """
 
         # Create the out folder if it doesn't exist
-        if (not os.path.exists(output_dir)):
-            if (self.verbose):
+        if not os.path.exists(output_dir):
+            if self.verbose:
                 print("Output directory doesn't exist, creating it...")
             os.mkdir(output_dir)
 
@@ -285,7 +286,7 @@ class Generator:
             mod_name = os.path.splitext(os.path.basename(input_file))[0]
 
         # Generate the pnach
-        pnach_lines = self.generate_pnach_str(input_file, mod_name, author)
+        pnach_lines = self.generate_pnach_str(input_file, mod_name, author, csv_encoding)
 
         # Write the final pnach file
         outfile = os.path.join(output_dir, f"{crc}.{mod_name}.pnach")

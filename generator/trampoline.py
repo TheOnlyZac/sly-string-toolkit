@@ -8,7 +8,7 @@ class Trampoline:
     """
     Trampoline class
     """
-    def __init__(self, id_string_pairs=None):
+    def __init__(self, id_string_pairs: list = None):
         """
         Initializes the trampoline with the specified ID/string pairs
         """
@@ -17,7 +17,7 @@ class Trampoline:
         else:
             self.id_string_pairs = id_string_pairs
 
-    def gen_asm(self):
+    def gen_asm(self) -> str:
         """
         Generates the trampoline assembly code from the ID/string pairs on the object
         """
@@ -41,7 +41,7 @@ class Trampoline:
 
         return asm
 
-    def gen_asm_from_csv(self, filename):
+    def gen_asm_from_csv(self, filename: str) -> str:
         """
         Read the ID/string pairs from a csv and generates the assembly code
         """
@@ -55,7 +55,13 @@ class Trampoline:
         asm = self.gen_asm()
         return asm
 
-if __name__ == "__main__":
+def main():
+    """
+    Main function for testing
+    """
     trampoline = Trampoline()
     trampoline.gen_asm_from_csv("strings.csv")
     print(trampoline.gen_asm())
+
+if __name__ == "__main__":
+    main()

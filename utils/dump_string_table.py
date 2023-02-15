@@ -3,39 +3,39 @@ Script for extracting the string table from a ps2 memory dump to a csv file.
 """
 import argparse
 
-def dump_string_table(mem, string_table_start, mem_dump_start=0x00000000):
+def dump_string_table(mem: bytes, string_table_start: int, mem_dump_start: int = 0x00000000):
     """
     Dumps the string table from a memory dump to a csv file.
     The original string table is an array list of id/string pointer pairs.
     """
-    with open("strings.csv", "w+", encoding="utf-8") as file:
+    with open("strings.csv", "w+", encoding="iso-8859-1") as file:
         cur = string_table_start
         i = 0
 
         while True:
             i += 1
 
-            id, pointer = int.from_bytes(mem[cur:cur+4], "little"), int.from_bytes(mem[cur+4:cur+8], "little")
-            print(f"{id:X}, {pointer:X}")
-            if (pointer == 0x000000) or (id > 0xFFFF) or (i > 1000):
+            string_id, string_pointer = int.from_bytes(mem[cur:cur+4], "little"), int.from_bytes(mem[cur+4:cur+8], "little")
+            print(f"{string_id:X}, {string_pointer:X}")
+            if (string_pointer == 0x000000) or (string_id > 0xFFFF) or (i > 1000):
                 break
-            pointer = pointer - mem_dump_start
-            
+            string_pointer = string_pointer - mem_dump_start
+
             string = ""
             while True:
-                byte = mem[pointer:pointer+1]
+                byte = mem[string_pointer:string_pointer+1]
                 if byte == b"\x00" or byte == b'':
                     break
                 char = byte.decode("iso-8859-1")
                 string += char
-                pointer += 1
+                string_pointer += 1
 
             # check if string contains quotation marks, commas, or newlines
             if "\"" in string or "," in string or "\n" in string:
                 # if so, wrap the string in quotation marks
                 string = f"\"{string}\""
-            file.write(f"{id},{string}\n")
-            cur += 8        
+            file.write(f"{string_id},{string}\n")
+            cur += 8
 
 if __name__ == "__main__":
     # get the command line arguments
@@ -47,8 +47,8 @@ if __name__ == "__main__":
 
     # read the memory dump
     memory = None
-    with open(args.mem_file, "rb") as file:
-        memory = file.read()
+    with open(args.mem_file, "rb") as mem_file:
+        memory = mem_file.read()
 
     # dump the string table
     dump_string_table(memory, args.offset, args.start)
