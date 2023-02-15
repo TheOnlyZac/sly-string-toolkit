@@ -2,8 +2,9 @@
 Script for checking if two pnach files are compatible with each other.
 """
 import argparse
+from typing import List
 
-def get_addresses(pnach):
+def get_addresses(pnach: str) -> List[int]:
     """
     Gets the memory addresses that are written to by a pnach file.
     """
@@ -31,10 +32,10 @@ def get_addresses(pnach):
                 address = int(code_part_1[1:8], 16)
                 value = int(code_part_2[0:8], 16)
                 addresses.append(address)
-    
+
     return addresses
 
-def check_compatiblity(pnach_1, pnach_2):
+def check_compatiblity(pnach_1: str, pnach_2: str):
     """
     Checks if two pnach files are compatible with each other. Two pnach files
     are compatible if they don't both write to the same memory addresses (unless
@@ -46,13 +47,13 @@ def check_compatiblity(pnach_1, pnach_2):
     # get the memory addresses that are written to by each pnach file
     pnach_1_addresses = get_addresses(pnach_1)
     pnach_2_addresses = get_addresses(pnach_2)
-    
+
     # check if any of the addresses are written to by both pnach files
     matches = []
     for address in pnach_1_addresses:
         if address in pnach_2_addresses:
             matches.append(address)
-    
+
     if len(matches) > 0:
         matches_string = ", ".join([hex(match) for match in matches])
         return f"The following {len(matches)} addresses are written to by both pnach files: {matches_string}"
@@ -60,6 +61,9 @@ def check_compatiblity(pnach_1, pnach_2):
         return "The pnach files are compatible!"
 
 def main():
+    """
+    Calls the check_compatiblity function with test pnach files.
+    """
     # get the command line arguments
     parser = argparse.ArgumentParser(description="Checks if two pnach files are compatible with each other.")
     parser.add_argument("pnach_file_1", help="The first pnach file.")

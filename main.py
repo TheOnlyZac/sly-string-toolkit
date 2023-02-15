@@ -30,12 +30,12 @@ def main():
     args = parser.parse_args()
 
     # Make sure the input file exists
-    if (not os.path.exists(args.input_file)):
+    if not os.path.exists(args.input_file):
         print("Usage: python main.py [input_file] [-o output_dir] [-n mod_name]")
         return
-    
+
     # Make sure input file is a complete path
-    if (not os.path.isabs(args.input_file)):
+    if not os.path.isabs(args.input_file):
         args.input_file = os.path.abspath(args.input_file)
 
     # Set verbose and debug flags on generator
@@ -53,7 +53,7 @@ def main():
         event_handler = FileSystemEventHandler()
         event_handler.on_modified = lambda event: generator.generate_pnach_file(args.input_file, args.output_dir, args.mod_name, args.author, args.csv_encoding)
         observer.schedule(event_handler, path=os.path.dirname(args.input_file), recursive=False)
-        
+
         # Start the observer and wait for keyboard interrupt
         observer.start()
         try:
@@ -69,3 +69,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+    
