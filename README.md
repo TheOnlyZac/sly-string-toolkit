@@ -1,23 +1,29 @@
 # Sly String Toolkit
 <img src="thumb.png" alt="A screenshot of the Sly 2 title screen with strings replaced where game strings have been replaced with the name and link to the repository." align="right" style="float: right; margin: 10px; width: 300px">
 
-This is a toolkit for making string replacement mods for *Sly 2: Band of Thieves* on the PS2. For a complete tutorial, see [this guide](https://slymods.info/wiki/Guide:Replacing_strings).
+This is a toolkit for making string replacement mods for *Sly 2: Band of Thieves* and *Sly 3: Honor Among Thieves* for the PS2. For a complete tutorial, see [this guide](https://slymods.info/wiki/Guide:Replacing_strings).
 
 # Usage
 
-`python main.py <input_csv> <options>`
+`python stringtoolkit.py [-g 2/3] [-r ntsc/pal] <options> input_file.csv`
 
-The script supports the following optional arguments:
+These arguments are required:
+* `-g <game>` - Which game the mod supports. `2` for Sly 2 or `3` for Sly 3 (required).
+* `-r <region>` - Which region the mod supports. Can be `ntsc` or `pal` (required).
 
-* `-o <output_dir>` - The output directory for the pnach file (default is `./out/`)
-* `-n <mod_name>` - The name of the mod. The output file will be `<crc>.<mod name>.pnach` (default is the same as the input file)
-* `-r <region>` - The region of the game. Can be `ntsc` or `pal` (default is `ntsc`)
-* `-d <dialect>` - The language the pnach should work for (PAL only). If not set, it will affect all languages.
+These arguments are optional:
+
+* `-l <lang>` - The language the pnach should work for (PAL only). If not set, it will affect all languages.
+* `-n <mod_name>` - The name of the mod. Shows in the PCSX2 GUI. The output file will be `<crc>.<mod_name>.pnach` (default is the same as the input file).
+* `-a <author> ` The author of the mod. Shows in the PCSX2 GUI (default is "Sly String Toolkit").
+* `-o <output_dir>` - The output directory for the pnach file (default is `./out/`).
   * Can be `en`, `fr`, `it`, `de`, `es`, `nd`, `pt`, `da`, `fi`, `no`, or `sv`.
-  * Pnach files for multiple languages are not compatible with one another.
-* `-l` - Enable live edit mode. This will allow you to edit the strings in the csv and the pnach will automatically update.
-* `-v` - Enable verbose output
-* `-h` - Show help
+  * Only one pnach can be used at a time, so if your mod supports multiple languages, you must post them as separate patches.
+* `-c <asm_codecave>` - Change the address of the codecave where the mod's assembly code is injected.
+* `-s <strings_codecave` - Change the address of the codecave where the custom strings are injected.
+* `--live-edit` - Enable live edit mode. This will allow you to edit the strings in the csv and the pnach will automatically update.
+* `--verbose` - Enable verbose output.
+* `-h` - Show help.
 
 # Setup
 
@@ -25,18 +31,20 @@ The script supports the following optional arguments:
 
 2. Clone the repository with `git clone https://github.com/theonlyzac/sly-string-toolkit.git`
 
-3. Install the dependencies with `pip install -r requirements.txt`
+3. Create python environment with `python3 -m venv env`
+  * Then `source env/bin/activate` (Linux) or `.\env\bin\activate.bat` (Windows)
 
-4. Run `python main.py <input_file>` to generate the `.pnach` file.
-   * Use the `-o` argument to specify the output directory if desired.
+4. Install the dependencies with `pip install -r requirements.txt`
 
-6. Put the `.pnach` file in your `pcsx2/cheats` folder, enable cheats, and start the game.
+5. Use `stringtoolkit.py` as described in the section aboce to generate the `.pnach` file.
 
-# Output 
+6. Put the `.pnach` file in your `PCSX2/cheats` folder, enable the cheat, and start the game.
+
+# Output
 
 The script will output one pnach file. It contains the assembly code to load the custom strings as well as the strings themselves.
 
-You should put this file in your `pcsx2/cheats` folder. You can rename file if you want, but it must start with `07652DD9.` (including the dot) and end with `.pnach`.
+You should put this file in your `pcsx2/cheats` folder. You can rename file if you want, but it must be in the format `<game_crc>.<mod_name>.pnach`..
 
 # Strings CSV Format
 
@@ -48,13 +56,13 @@ The input file should be a CSV where each row has the following format:
 * `<string>` is the string to replace it with
 * `<optional target address>` is the address to write the string to. If not specified, it will be written with the rest of the strings in a block at the address specified by the `-a` option.
 
-Everything after the third column is ignored by the script, so you can use them for notes if you want. You can make the file in Excel or Google Sheets and then export it as a CSV.
+Everything after the third column is ignored by the script, so you can use it for notes if you want. You can make the file in Excel or Google Sheets and then export it as a CSV.
 
 # Live Edit
 
-The `-l` option enables live edit mode. When enabled, the script will watch the input file for changes and update the pnach file automatically. This allows you to edit the strings in the CSV file while the game is running. Press `ctrl+c` to stop the script.
+The `--live-edit` option enables live edit mode. When enabled, the script will watch the input file for changes and update the pnach file automatically. This allows you to edit the strings in the CSV file while the game is running. Press `ctrl+c` to stop the script.
 
-PCSX2 will not automatically reload the pnach file when it changes, so you will not see your changes immediately. However, it does automatically reload cheats each time you save or load a save state, so you can press `F1` to create a save state which will quickly reload the pnach. Note that this will overrite whatever save state you have selected.
+PCSX2 will not automatically reload the pnach file when it changes, so you will not see your changes immediately. You have to click "Reload cheats" in the game properties window, or reboot the game (and use a save state to quickly get back to where you were).
 
 # How it works
 
