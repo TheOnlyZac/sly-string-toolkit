@@ -31,12 +31,11 @@ These arguments are optional:
 
 2. Clone the repository with `git clone https://github.com/theonlyzac/sly-string-toolkit.git`
 
-3. Create python environment with `python3 -m venv env`
-  * Then `source env/bin/activate` (Linux) or `.\env\bin\activate.bat` (Windows)
+3. Create python environment with `python3 -m venv env`, then `source env/bin/activate` (Linux) or `.\env\Scripts\activate.bat` (Windows)
 
 4. Install the dependencies with `pip install -r requirements.txt`
 
-5. Use `stringtoolkit.py` as described in the section aboce to generate the `.pnach` file.
+5. Use `stringtoolkit.py` as described in the section above to generate the `.pnach` file.
 
 6. Put the `.pnach` file in your `PCSX2/cheats` folder, enable the cheat, and start the game.
 
@@ -44,7 +43,7 @@ These arguments are optional:
 
 The script will output one pnach file. It contains the assembly code to load the custom strings as well as the strings themselves.
 
-You should put this file in your `pcsx2/cheats` folder. You can rename file if you want, but it must be in the format `<game_crc>.<mod_name>.pnach`..
+You should put this file in your `pcsx2/cheats` folder. You can rename file if you want, but it must be in the format `<game_crc>.<mod_name>.pnach`.
 
 # Strings CSV Format
 
