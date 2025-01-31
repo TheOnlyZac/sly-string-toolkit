@@ -31,7 +31,7 @@ def main():
 
     # Make sure the input file exists
     if not os.path.exists(args.input_file):
-        print("Usage: python main.py [input_file] [-o output_dir] [-n mod_name]")
+        print(parser.format_help())
         return
 
     # Make sure input file is a complete path
@@ -69,4 +69,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-    

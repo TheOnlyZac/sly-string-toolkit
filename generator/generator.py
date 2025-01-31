@@ -218,12 +218,12 @@ class Generator:
         # Set up pnach header lines
         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         region_string = self.region.upper()
-        header_lines = f"gametitle=Sly 2: Band of Thieves ({region_string})\n" \
-            + f"comment={mod_name} by {author}\n\n" \
-            + f"{mod_name} by {author}\n" \
-            + "Pnach generated with Sly String Toolkit\n" \
+        header_lines = f"[{mod_name}]\n" \
+            + f"author={author}\n" \
+            + f"gametitle=Sly 2: Band of Thieves ({region_string})\n" \
+            + "description=Generated with Sly String Toolkit\n" \
             + "https://github.com/theonlyzac/sly-string-toolkit\n" \
-            + f"date: {timestamp}\n"
+            + f"date={timestamp}\n"
 
         # Add all mod chunks to final pnach
         final_mod_pnach = pnach.Pnach(header=header_lines)
