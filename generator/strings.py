@@ -20,7 +20,7 @@ class Strings:
         self.out_encoding = out_encoding
         self.start_address = start_address
 
-    def gen_pnach_chunks(self) -> Tuple[pnach.Chunk, List[pnach.Chunk], List[Tuple[int, int]]]:
+    def gen_pnach_chunks(self, patch_format: str) -> Tuple[pnach.Chunk, List[pnach.Chunk], List[Tuple[int, int]]]:
         """
         Generates a pnach file with the strings from the csv file and returns
         a tuple with the pnach object and the array of pointers to the strings
@@ -54,12 +54,12 @@ class Strings:
         # gen pnach chunk for the strings that don't have a target address
         offset = self.start_address
         string_data = b''.join([string[1] for string in strings])
-        auto_chunk = pnach.Chunk(offset, string_data)
+        auto_chunk = pnach.Chunk(offset, string_data, patch_format=patch_format)
 
         # gen pnach chunks for strings that have a target address
         manual_chunks = []
         for string in manual_address_strings:
-            chunk = pnach.Chunk(string[2], string[1])
+            chunk = pnach.Chunk(string[2], string[1], patch_format)
             manual_chunks.append(chunk)
 
         # 3 - Generate the pointers to the strings
@@ -74,9 +74,9 @@ class Strings:
             id_string_pointer_pairs.append((string[0], string[2]))
 
         # set header for the pnach chunks
-        auto_chunk.set_header(f"comment=Writing {len(id_string_pointer_pairs)} strings ({len(auto_chunk.get_bytes())} bytes) at {hex(self.start_address)}")
+        auto_chunk.set_header(f"Writing {len(id_string_pointer_pairs)} strings ({len(auto_chunk.get_bytes())} bytes) at {hex(self.start_address)}")
         for chunk in manual_chunks:
-            chunk.set_header(f"comment=Writing 1 string ({len(chunk.get_bytes())} bytes) at {hex(self.start_address)}")
+            chunk.set_header(f"Writing 1 string ({len(chunk.get_bytes())} bytes) at {hex(self.start_address)}")
 
         # 4 - Return the pnach lines and the array of pointers
         return (auto_chunk, manual_chunks, id_string_pointer_pairs)

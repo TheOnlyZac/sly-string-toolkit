@@ -1,7 +1,7 @@
 # Sly String Toolkit
 <img src="thumb.png" alt="A screenshot of the Sly 2 title screen with strings replaced where game strings have been replaced with the name and link to the repository." align="right" style="float: right; margin: 10px; width: 300px">
 
-This is a toolkit for making string replacement mods for *Sly 2: Band of Thieves* and *Sly 3: Honor Among Thieves* for the PS2. For a complete tutorial, see [this guide](https://slymods.info/wiki/Guide:Replacing_strings).
+This is a toolkit for making string replacement mods for *Sly 2: Band of Thieves* and *Sly 3: Honor Among Thieves* for the PS2. For a complete tutorial, see [this guide](https://slymods.info/wiki/Guide:Replacing_strings) on the SlyMods wiki.
 
 # Usage
 
@@ -20,9 +20,10 @@ These arguments are optional:
   * Can be `en`, `fr`, `it`, `de`, `es`, `nd`, `pt`, `da`, `fi`, `no`, or `sv`.
   * Only one pnach can be used at a time, so if your mod supports multiple languages, you must post them as separate patches.
 * `-c <asm_codecave>` - Change the address of the codecave where the mod's assembly code is injected.
-* `-s <strings_codecave` - Change the address of the codecave where the custom strings are injected.
+* `-s <strings_codecave>` - Change the address of the codecave where the custom strings are injected.
 * `--live-edit` - Enable live edit mode. This will allow you to edit the strings in the csv and the pnach will automatically update.
 * `--verbose` - Enable verbose output.
+* `--clps2c` - Output CLPS2C source code instead of raw pnach
 * `-h` - Show help.
 
 # Setup
