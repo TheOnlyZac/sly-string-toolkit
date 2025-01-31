@@ -17,12 +17,12 @@ class Trampoline:
         else:
             self.id_string_pairs = id_string_pairs
 
-    def gen_asm(self) -> str:
+    def gen_asm(self, hook_delayslot) -> str:
         """
         Generates the trampoline assembly code from the ID/string pairs on the object
         """
         asm = "trampoline:\n"
-        asm += "lw $v0, 0x4($a0)\n"
+        asm += f"{hook_delayslot}\n"
 
         for string_id, string_ptr in self.id_string_pairs:
             asm += f"# check matched string ID {string_id}\n"
