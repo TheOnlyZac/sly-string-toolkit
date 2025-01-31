@@ -15,6 +15,7 @@ class GameInfo:
     title: str
     crc: str
     hook_adr: int
+    hook_delayslot: str
     lang_adr: int
     asm_adr: int
     strings_adr: int
@@ -27,6 +28,7 @@ GAME_INFO = {
             title="Sly 2: Band of Thieves (USA)",
             crc="07652DD9",
             hook_adr=0x2013e380,
+            hook_delayslot="lw $v0, 0x4($a0)",
             lang_adr=None,
             asm_adr=0x202E60B0,
             strings_adr=0x203C7980,
@@ -36,6 +38,7 @@ GAME_INFO = {
             title="Sly 2: Band of Thieves (Europe)",
             crc="FDA1CBF6",
             hook_adr=0x2013e398,
+            hook_delayslot="lw $v0, 0x4($a0)",
             lang_adr=0x2E9254,
             asm_adr=0x202ED500,
             strings_adr=0x203CF190,
@@ -47,6 +50,7 @@ GAME_INFO = {
             title="Sly 3: Honor Among Thieves (USA)",
             crc="8BC95883",
             hook_adr=0x20150648,
+            hook_delayslot="lw $v0, 0x4($v1)",
             lang_adr=None,
             asm_adr=0x2045af00,
             strings_adr=0x200F1050,
@@ -55,6 +59,8 @@ GAME_INFO = {
         )#,
         #"pal": GameInfo(
             #title="Sly 3: Honour Among Thieves (Europe)",
+            #hook_delayslot="lw $v0, 0x4($v1)",
+            #encoding='UTF-16',
             #string_table=0x47B958
         #)
     }
@@ -82,7 +88,7 @@ class Generator:
     verbose = False
     debug = False
 
-    def __init__(self, game: int, region: str = "ntsc", lang: str = None, strings_address: int = None, code_address: int = None):
+    def __init__(self, game: int, region: str, lang: str = None, strings_address: int = None, code_address: int = None):
         """
         Initializes the generator with the specified region and addresses
         """
@@ -192,7 +198,7 @@ class Generator:
             print("Generating assembly code...")
 
         trampoline_obj = trampoline.Trampoline(string_pointers)
-        mips_code = trampoline_obj.gen_asm()
+        mips_code = trampoline_obj.gen_asm(self.game_info.hook_delayslot)
 
         # Print assembly code if verbose
         if self.verbose:
