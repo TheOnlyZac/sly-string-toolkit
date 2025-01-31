@@ -1,5 +1,5 @@
 """
-This file contains the generator class, which generates a pnach file from a CSV file
+Generator class which generates a pnach file from a CSV file.
 """
 import os
 from datetime import datetime
@@ -8,16 +8,57 @@ import struct
 import keystone
 from generator import strings, trampoline, pnach
 from utils import Assembler
+from dataclasses import dataclass
 
-SLY2_NTSC_CRC = "07652DD9"
-SLY2_NTSC_HOOK = 0x2013e380
-SLY2_NTSC_ASM_DEFAULT = 0x202E60B0
-SLY2_NTSC_STRINGS_DEFAULT = 0x203C7980
+@dataclass
+class GameInfo:
+    title: str
+    crc: str
+    hook_adr: int
+    lang_adr: int
+    asm_adr: int
+    strings_adr: int
+    encoding: str
+    #string_table: int
 
-SLY2_PAL_CRC = "FDA1CBF6"
-SLY2_PAL_HOOK = 0x2013e398
-SLY2_PAL_ASM_DEFAULT = 0x202ED500
-SLY2_PAL_STRINGS_DEFAULT = 0x203CF190
+GAME_INFO = {
+    2: {
+        "ntsc": GameInfo(
+            title="Sly 2: Band of Thieves (USA)",
+            crc="07652DD9",
+            hook_adr=0x2013e380,
+            lang_adr=None,
+            asm_adr=0x202E60B0,
+            strings_adr=0x203C7980,
+            encoding='iso-8859-1'
+        ),
+        "pal": GameInfo(
+            title="Sly 2: Band of Thieves (Europe)",
+            crc="FDA1CBF6",
+            hook_adr=0x2013e398,
+            lang_adr=0x2E9254,
+            asm_adr=0x202ED500,
+            strings_adr=0x203CF190,
+            encoding='iso-8859-1'
+        )
+    },
+    3: {
+        "ntsc": GameInfo(
+            title="Sly 3: Honor Among Thieves (USA)",
+            crc="8BC95883",
+            hook_adr=0x20150648,
+            lang_adr=None,
+            asm_adr=0x2045af00,
+            strings_adr=0x200F1050,
+            encoding='UTF-16'
+            #string_table=x47A2D8
+        )#,
+        #"pal": GameInfo(
+            #title="Sly 3: Honour Among Thieves (Europe)",
+            #string_table=0x47B958
+        #)
+    }
+}
 
 LANGUAGE_IDS = {
     "en": 0, # english
@@ -41,32 +82,28 @@ class Generator:
     verbose = False
     debug = False
 
-    def __init__(self, region: str = "ntsc", lang: str = None, strings_address: int = None, code_address: int = None):
+    def __init__(self, game: int, region: str = "ntsc", lang: str = None, strings_address: int = None, code_address: int = None):
         """
         Initializes the generator with the specified region and addresses
         """
         # Set region
         self.region = region.lower()
 
-        # Set code + strings addresses and lang based on region
-        if region == "ntsc":
-            self.strings_adr = SLY2_NTSC_STRINGS_DEFAULT if strings_address is None else strings_address
-            self.code_address = SLY2_NTSC_ASM_DEFAULT if code_address is None else code_address
+        try:
+            self.game_info = GAME_INFO[game][region]
+        except KeyError as e:
+            raise(f"Error: Game or region not supported ({game}/{region})")
 
-            if lang is not None:
-                print("Warning: Language selection is not supported for NTSC region, using English")
-                self.lang = LANGUAGE_IDS["en"]
-            else:
-                self.lang = None
-        elif region == "pal":
-            self.strings_adr = SLY2_PAL_STRINGS_DEFAULT if strings_address is None else strings_address
-            self.code_address = SLY2_PAL_ASM_DEFAULT if code_address is None else code_address
-            self.lang = LANGUAGE_IDS[lang.lower()] if lang is not None else None
+        self.strings_adr = self.game_info.strings_adr if strings_address is None else strings_address
+        self.code_address = self.game_info.asm_adr if code_address is None else code_address
+        self.hook_adr = self.game_info.hook_adr
+        self.lang_adr = self.game_info.lang_adr
+
+        if lang is not None and region == "ntsc":
+            print("Warning: Language selection is not supported for NTSC region, using English")
+            self.lang = LANGUAGE_IDS["en"]
         else:
-            raise Exception(f"Error: Region {region} not supported, must be `ntsc` or `pal`")
-
-        # Set hook address based on region
-        self.hook_adr = SLY2_NTSC_HOOK if self.region == "ntsc" else SLY2_PAL_HOOK
+            self.lang = LANGUAGE_IDS[lang.lower()] if lang is not None else None
 
         # Ensure addresses are ints
         if isinstance(self.strings_adr, str):
@@ -75,7 +112,6 @@ class Generator:
             self.code_address = int(self.code_address, 16)
         if isinstance(self.hook_adr, str):
             self.hook_adr = int(self.hook_adr, 16)
-
 
     @staticmethod
     def set_verbose(verbose: bool) -> None:
@@ -132,7 +168,8 @@ class Generator:
         if not os.path.isfile(csv_file):
             raise Exception(f"Error: File {csv_file} does not exist")
 
-        strings_obj = strings.Strings(csv_file, self.strings_adr, csv_encoding)
+        out_encoding = self.game_info.encoding
+        strings_obj = strings.Strings(csv_file, self.strings_adr, csv_encoding, out_encoding)
         auto_strings_chunk, manual_string_chunks, string_pointers = strings_obj.gen_pnach_chunks()
 
         # Print string pointers if verbose
@@ -217,10 +254,10 @@ class Generator:
 
         # Set up pnach header lines
         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        region_string = self.region.upper()
+        gametitle= self.game_info.title
         header_lines = f"[{mod_name}]\n" \
             + f"author={author}\n" \
-            + f"gametitle=Sly 2: Band of Thieves ({region_string})\n" \
+            + f"gametitle={gametitle}\n" \
             + "description=Generated with Sly String Toolkit\n" \
             + "https://github.com/theonlyzac/sly-string-toolkit\n" \
             + f"date={timestamp}\n"
@@ -242,7 +279,7 @@ class Generator:
             return str(final_mod_pnach)
 
         # Add language check conditional to final pnach
-        final_mod_pnach.add_conditional(0x2E9254, self.lang, 'eq')
+        final_mod_pnach.add_conditional(self.lang_adr, self.lang, 'eq')
 
         # Generate pnach which cancels the function hook by setting the asm back to the original
         cancel_hook_pnach = pnach.Pnach()
@@ -259,7 +296,7 @@ class Generator:
         cancel_hook_pnach.add_chunk(cancel_hook_chunk)
 
         # Add conditional to cancel the function hook if game is set to the wrong language
-        cancel_hook_pnach.add_conditional(0x2E9254, self.lang, 'neq')
+        cancel_hook_pnach.add_conditional(self.lang_adr, self.lang, 'neq')
 
         if self.verbose:
             print("Cancel hook pnach:")
@@ -279,7 +316,7 @@ class Generator:
             os.mkdir(output_dir)
 
         # Set crc based on region
-        crc = SLY2_NTSC_CRC if self.region == "ntsc" else SLY2_PAL_CRC
+        crc = self.game_info.crc
 
         # Set the mod name (default is same as input file)
         if (mod_name is None or mod_name == ""):

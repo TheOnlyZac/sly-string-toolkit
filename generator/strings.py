@@ -11,12 +11,13 @@ class Strings:
     This class reads a csv file and generates a pnach file with the strings
     and popoulates an array of pointers to the strings
     """
-    def __init__(self, csv_file: str, start_address: int, csv_encoding: str = 'utf-8'):
+    def __init__(self, csv_file: str, start_address: int, csv_encoding: str, out_encoding: str):
         """
         Initializes the Strings object
         """
         self.csv_file = csv_file
         self.csv_encoding = csv_encoding
+        self.out_encoding = out_encoding
         self.start_address = start_address
 
     def gen_pnach_chunks(self) -> Tuple[pnach.Chunk, List[pnach.Chunk], List[Tuple[int, int]]]:
@@ -39,14 +40,14 @@ class Strings:
             for row in reader:
                 # if the length of the row is 3, add the address and string to the manual address strings array
                 if len(row) > 2 and row[2] != '':
-                    manual_address_strings.append((int(row[0]), row[1].encode('iso-8859-1') + b'\x00', int(row[2], 16)))
+                    manual_address_strings.append((int(row[0]), row[1].encode(self.out_encoding) + b'\x00', int(row[2], 16)))
                 # otherwise add the string to the strings array
                 else:
                     try:
-                        strings.append((int(row[0]), row[1].encode('iso-8859-1') + b'\x00'))
+                        strings.append((int(row[0]), row[1].encode(self.out_encoding) + b'\x00'))
                     except UnicodeEncodeError as err:
                         print(f"Failed to encode string '{row[1]}'\nError: {err}")
-                        strings.append((int(row[0]), "[error encoding string]".encode('iso-8859-1') + b'\x00'))
+                        strings.append((int(row[0]), "[error encoding string]".encode(self.out_encoding) + b'\x00'))
 
         # 2 - Generate the pnach file
 
