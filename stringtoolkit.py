@@ -28,6 +28,7 @@ def main():
     parser.add_argument('-e', '--csv_encoding', type=str, help='Encoding of the input CSV file (default is utf-8)', default="utf-8")
     parser.add_argument('--verbose', action='store_true', help='Enable verbose output')
     parser.add_argument('--live-edit', action='store_true', help='Enable live editing of strings csv file')
+    parser.add_argument('--clps2c', action='store_true', help='Output CLPS2C code instead of pnach')
     args = parser.parse_args()
 
     # Make sure the input file exists
@@ -40,6 +41,11 @@ def main():
     if not os.path.isabs(args.input_file):
         args.input_file = os.path.abspath(args.input_file)
 
+    # Determine output format
+    patch_format = "pnach"
+    if args.clps2c:
+        patch_format = "clps2c"
+
     # Set static flags on generator
     Generator.set_verbose(args.verbose)
     Generator.set_debug(DEBUG_ENABLED)
@@ -51,7 +57,7 @@ def main():
         # Create the observer and schedule the event handler
         observer = Observer()
         event_handler = FileSystemEventHandler()
-        event_handler.on_modified = lambda event: generator.generate_pnach_file(args.input_file, args.output_dir, args.name, args.author, args.csv_encoding)
+        event_handler.on_modified = lambda event: generator.generate_patch_file(args.input_file, args.output_dir, args.name, args.author, args.csv_encoding, patch_format)
         observer.schedule(event_handler, path=os.path.dirname(args.input_file), recursive=False)
 
         # Start the observer and wait for keyboard interrupt
@@ -65,7 +71,8 @@ def main():
         # Stop the observer
         observer.join()
     else:
-        generator.generate_pnach_file(args.input_file, args.output_dir, args.name, args.author)
+        print("FORMAT:", patch_format)
+        generator.generate_patch_file(args.input_file, args.output_dir, args.name, args.author, args.csv_encoding, patch_format)
 
 if __name__ == "__main__":
     main()

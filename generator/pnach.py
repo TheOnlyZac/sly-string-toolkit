@@ -7,13 +7,17 @@ class Chunk:
     """
     Chunk class, used to generate chunks of code lines for pnach files.
     """
-    def __init__(self, address: int, data: bytes = b"", header: str = ""):
+    def __init__(self, address: int, data: bytes = b"", header: str = "", patch_format: str = "pnach"):
         """
         Constructor for the Chunk class.
         """
         self._address = address
         self._bytes = data
         self._header = header
+
+        if patch_format not in ["pnach", "clps2c"]:
+            raise ValueError(f"Invalid format specified for pnach chunk: {patch_format}")
+        self._format = patch_format
 
     # Getter and setter for address
     def get_address(self) -> int:
@@ -46,7 +50,12 @@ class Chunk:
         """
         Returns the header of the chunk.
         """
-        return self._header
+        if self._format == 'pnach':
+            return f"comment={self._header}"
+        elif self._format == "clps2c":
+            return f"SR \"\\n{self._header}\""
+        else:
+            raise ValueError()
 
     def set_header(self, header : str) -> None:
         """
@@ -76,7 +85,10 @@ class Chunk:
             word = word[::-1]
 
             value = int.from_bytes(word, 'big')
-            line = f"patch=1,EE,{address:X},extended,{value:08X}"
+            if self._format == "pnach":
+                line = f"patch=1,EE,2{address:07X},extended,{value:08X}"
+            elif self._format == "clps2c":
+                line = f"W32 {address:08X} 0x{value:08X}"
             code_lines.append(line)
         return code_lines
 
@@ -86,7 +98,7 @@ class Chunk:
         """
         chunk_str = ""
         if self._header != "":
-            chunk_str += self._header + '\n'
+            chunk_str += self.get_header() + '\n'
         chunk_str += '\n'.join(self.get_code_lines())
         return chunk_str
 
@@ -101,15 +113,20 @@ class Pnach:
     """
     Pnach class, used to generate pnach files.
     """
-    def __init__(self, address: str = "", data: bytes = b"", header: str = ""):
+    def __init__(self, address: str = "", data: bytes = b"", header: str = "", patch_format: str = "pnach"):
         """
         Constructor for the Pnach class.
         """
         self._chunks = []
         self._conditionals = {}
         self._header = header
+
         if data != b"":
             self.create_chunk(address, data, header)
+
+        if patch_format not in ["pnach", "clps2c"]:
+            raise ValueError(f"Invalid format specified for pnach: {patch_format}")
+        self._format = patch_format
 
     # Getter for array of lines (no setter)
     def get_code_lines(self) -> List[str]:
@@ -130,7 +147,18 @@ class Pnach:
         """
         Returns the header for the pnach file.
         """
-        return self._header
+        if self._format == 'pnach':
+            return self._header
+        elif self._format == "clps2c":
+            lines = self._header.split('\n')
+            out = ""
+            for line in lines:
+                out += "SR \"\\n"
+                out += line
+                out += "\"\n"
+            return out
+        else:
+            raise ValueError()
 
     def set_header(self, header: str) -> None:
         """
@@ -203,13 +231,13 @@ class Pnach:
         """
         with open(filename, "w+", encoding="utf-8") as f:
             if self._header != "":
-                f.write(self._header)
+                f.write(self.get_header())
             for chunk in self._chunks:
                 f.write(str(chunk))
                 f.write("\n")
 
     # String from pnach lines
-    def __str__(self) -> str:
+    def get_code_lines(self) -> str:
         """
         Returns a string with the pnach lines.
         """
@@ -217,7 +245,7 @@ class Pnach:
 
         # Write header
         if self._header != "":
-            pnach_str += self._header + "\n"
+            pnach_str += self.get_header() + "\n"
 
         # If there are no conditionals, write all lines
         if len(self._conditionals) == 0:
@@ -233,7 +261,13 @@ class Pnach:
         cond_address = self._conditionals['address']
         cond_value = self._conditionals['value']
         cond_type = self._conditionals['type']
-        cond_operator = "==" if cond_type == 0 else "!="
+
+        cond_operator = ""
+        if self._format == "pnach":
+            cond_operator = "==" if cond_type == 0 else "!="
+        elif self._format == "clps2c":
+            cond_operator = "=:" if cond_type == 0 else "!:"
+
         for chunk in self._chunks:
             # Add chunk header
             if chunk.get_header() != "":
@@ -250,13 +284,24 @@ class Pnach:
                 # Compares value at address @a to value @v, and executes next @n code llines only if condition @t is met.
                 num_lines_remaining = num_lines - i
                 num_lines_to_write = 0xFF if num_lines_remaining > 0xFF else num_lines_remaining
+
                 # Add conditional line
-                pnach_str += f"-- Conditional: if *{cond_address:X} {cond_operator} 0x{cond_value:X} do {num_lines_to_write} lines\n"
-                pnach_str += f"patch=1,EE,E0{num_lines_to_write:02X}{cond_value:04X},extended,{cond_type:1X}{cond_address:07X}\n"
+                pnach_str += f"// Conditional: if *0x{cond_address:X} {cond_operator} 0x{cond_value:X} do {num_lines_to_write} lines\n"
+                if self._format == "pnach":
+                    pnach_str += f"patch=1,EE,E0{num_lines_to_write:02X}{cond_value:04X},extended,{cond_type:1X}{cond_address:07X}\n"
+                elif self._format == "clps2c":
+                    pnach_str += f"IF 0x{cond_address:X} {cond_operator} 0x{cond_value:X}\n"
+
                 # Write lines to pnach
-                pnach_str += '\n'.join(lines[i:i + num_lines_to_write]) + "\n"
+                joiner = "\n" if self._format == "pnach" else "\n    "
+                pnach_str += joiner.join(lines[i:i + num_lines_to_write]) + "\n"
+                if self._format == "clps2c":
+                    pnach_str += "ENDIF\n"
 
         return pnach_str
+
+    def __str__(self) -> str:
+        return self.get_code_lines()
 
     # String representation of pnach object
     def __repr__(self) -> str:

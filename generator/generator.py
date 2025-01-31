@@ -27,21 +27,21 @@ GAME_INFO = {
         "ntsc": GameInfo(
             title="Sly 2: Band of Thieves (USA)",
             crc="07652DD9",
-            hook_adr=0x2013e380,
+            hook_adr=0x13e380,
             hook_delayslot="lw $v0, 0x4($a0)",
             lang_adr=None,
-            asm_adr=0x202E60B0,
-            strings_adr=0x203C7980,
+            asm_adr=0x2E60B0,
+            strings_adr=0x3C7980,
             encoding='iso-8859-1'
         ),
         "pal": GameInfo(
             title="Sly 2: Band of Thieves (Europe)",
             crc="FDA1CBF6",
-            hook_adr=0x2013e398,
+            hook_adr=0x13e398,
             hook_delayslot="lw $v0, 0x4($a0)",
             lang_adr=0x2E9254,
-            asm_adr=0x202ED500,
-            strings_adr=0x203CF190,
+            asm_adr=0x2ED500,
+            strings_adr=0x3CF190,
             encoding='iso-8859-1'
         )
     },
@@ -49,11 +49,11 @@ GAME_INFO = {
         "ntsc": GameInfo(
             title="Sly 3: Honor Among Thieves (USA)",
             crc="8BC95883",
-            hook_adr=0x20150648,
+            hook_adr=0x150648,
             hook_delayslot="lw $v0, 0x4($v1)",
             lang_adr=None,
-            asm_adr=0x2045af00,
-            strings_adr=0x200F1050,
+            asm_adr=0x45af00,
+            strings_adr=0x0F1050,
             encoding='UTF-16'
             #string_table=x47A2D8
         )#,
@@ -163,7 +163,7 @@ class Generator:
 
         return machine_code_bytes, count
 
-    def _gen_strings_from_csv(self, csv_file: str, csv_encoding: str = "utf-8") -> Tuple[pnach.Chunk, List[pnach.Chunk], List[Tuple[int, int]]]:
+    def _gen_strings_from_csv(self, csv_file: str, csv_encoding: str = "utf-8", patch_format: str = "pnach") -> Tuple[pnach.Chunk, List[pnach.Chunk], List[Tuple[int, int]]]:
         """
         Generates the strings pnach and populate string pointers
         """
@@ -176,7 +176,7 @@ class Generator:
 
         out_encoding = self.game_info.encoding
         strings_obj = strings.Strings(csv_file, self.strings_adr, csv_encoding, out_encoding)
-        auto_strings_chunk, manual_string_chunks, string_pointers = strings_obj.gen_pnach_chunks()
+        auto_strings_chunk, manual_string_chunks, string_pointers = strings_obj.gen_pnach_chunks(patch_format)
 
         # Print string pointers if verbose
         if self.verbose:
@@ -213,7 +213,7 @@ class Generator:
 
         return mips_code
 
-    def _gen_code_pnach(self, machine_code_bytes: bytes) -> Tuple[pnach.Chunk, pnach.Chunk]:
+    def _gen_code_pnach(self, machine_code_bytes: bytes, patch_format: str) -> Tuple[pnach.Chunk, pnach.Chunk]:
         """
         Generates the pnach object for the mod and hook code
         """
@@ -221,8 +221,8 @@ class Generator:
             print("Generating pnach file...")
 
         # Generate mod pnach code
-        mod_chunk = pnach.Chunk(self.code_address, machine_code_bytes)
-        mod_chunk.set_header(f"comment=Writing {len(machine_code_bytes)} bytes of machine code at {hex(self.code_address)}")
+        mod_chunk = pnach.Chunk(self.code_address, machine_code_bytes, patch_format=patch_format)
+        mod_chunk.set_header(f"Writing {len(machine_code_bytes)} bytes of machine code at {hex(self.code_address)}")
 
         # Print mod pnach code if verbose
         if self.verbose:
@@ -233,8 +233,8 @@ class Generator:
         hook_asm = f"j {self.code_address}\n"
         hook_code, count = self.assemble(hook_asm)
 
-        hook_chunk = pnach.Chunk(self.hook_adr, hook_code)
-        hook_chunk.set_header(f"comment=Hooking string load function at {hex(self.hook_adr)}")
+        hook_chunk = pnach.Chunk(self.hook_adr, hook_code, patch_format=patch_format)
+        hook_chunk.set_header(f"Hooking string load function at {hex(self.hook_adr)}")
 
         # Print hook pnach code if verbose
         if self.verbose:
@@ -244,15 +244,15 @@ class Generator:
         return (mod_chunk, hook_chunk)
 
 
-    def generate_pnach_str(self, input_file: str, mod_name: str = None, author: str = "Sly String Toolkit", csv_encoding: str = "utf-8") -> str:
+    def generate_patch_str(self, input_file: str, mod_name: str = None, author: str = "Sly String Toolkit", csv_encoding: str = "utf-8", patch_format: str = "pnach") -> str:
         """
         Generates the mod pnach text from the given input file
         """
         # Generate the strings, asm code, and pnach files
-        auto_strings_chunk, manual_sting_chunks, string_pointers = self._gen_strings_from_csv(input_file, csv_encoding)
+        auto_strings_chunk, manual_sting_chunks, string_pointers = self._gen_strings_from_csv(input_file, csv_encoding, patch_format=patch_format)
         trampoline_asm = self._gen_asm(string_pointers)
         trampoline_binary, count = self.assemble(trampoline_asm)
-        mod_chunk, hook_chunk = self._gen_code_pnach(trampoline_binary)
+        mod_chunk, hook_chunk = self._gen_code_pnach(trampoline_binary, patch_format=patch_format)
 
         # Set the mod name (default is same as input file)
         if (mod_name is None or mod_name == ""):
@@ -269,26 +269,26 @@ class Generator:
             + f"date={timestamp}\n"
 
         # Add all mod chunks to final pnach
-        final_mod_pnach = pnach.Pnach(header=header_lines)
-        final_mod_pnach.add_chunk(hook_chunk)
-        final_mod_pnach.add_chunk(mod_chunk)
-        final_mod_pnach.add_chunk(auto_strings_chunk)
+        final_mod_patch = pnach.Pnach(header=header_lines, patch_format=patch_format)
+        final_mod_patch.add_chunk(hook_chunk)
+        final_mod_patch.add_chunk(mod_chunk)
+        final_mod_patch.add_chunk(auto_strings_chunk)
         for chunk in manual_sting_chunks:
-            final_mod_pnach.add_chunk(chunk)
+            final_mod_patch.add_chunk(chunk)
 
         # Print final pnach if verbose
         if self.verbose:
             print("Final mod pnach:")
-            print(final_mod_pnach)
+            print(final_mod_patch)
 
         if self.lang is None:
-            return str(final_mod_pnach)
+            return str(final_mod_patch)
 
         # Add language check conditional to final pnach
-        final_mod_pnach.add_conditional(self.lang_adr, self.lang, 'eq')
+        final_mod_patch.add_conditional(self.lang_adr, self.lang, 'eq')
 
         # Generate pnach which cancels the function hook by setting the asm back to the original
-        cancel_hook_pnach = pnach.Pnach()
+        cancel_hook_patch = pnach.Pnach(patch_format=patch_format)
         cancel_hook_asm = "jr $ra\nlw $v0, 0x4($a0)"
         cancel_hook_bytes, count = self.assemble(cancel_hook_asm)
 
@@ -297,20 +297,20 @@ class Generator:
         cancel_hook_bytes = cancel_hook_bytes[:4] + cancel_hook_bytes[8:]
 
         cancel_hook_chunk = pnach.Chunk(self.hook_adr, cancel_hook_bytes,
-            f"comment=Loading {len(cancel_hook_bytes)} bytes of machine code (hook cancel) at {hex(self.hook_adr)}...")
+            f"Loading {len(cancel_hook_bytes)} bytes of machine code (hook cancel) at {hex(self.hook_adr)}...", patch_format=patch_format)
         # Add chunk and conditional to pnach
-        cancel_hook_pnach.add_chunk(cancel_hook_chunk)
+        cancel_hook_patch.add_chunk(cancel_hook_chunk)
 
         # Add conditional to cancel the function hook if game is set to the wrong language
-        cancel_hook_pnach.add_conditional(self.lang_adr, self.lang, 'neq')
+        cancel_hook_patch.add_conditional(self.lang_adr, self.lang, 'neq')
 
         if self.verbose:
             print("Cancel hook pnach:")
-            print(cancel_hook_pnach)
+            print(cancel_hook_patch)
 
-        return str(final_mod_pnach) + str(cancel_hook_pnach)
+        return str(final_mod_patch) + str(cancel_hook_patch)
 
-    def generate_pnach_file(self, input_file: str, output_dir: str = "./out/", mod_name: str = None, author: str = "Sly String Toolkit", csv_encoding: str = "utf-8") -> None:
+    def generate_patch_file(self, input_file: str, output_dir: str = "./out/", mod_name: str = None, author: str = "Sly String Toolkit", csv_encoding: str = "utf-8", format: str = "pnach") -> None:
         """
         Generates a mod pnach and writes it to a file
         """
@@ -329,12 +329,12 @@ class Generator:
             mod_name = os.path.splitext(os.path.basename(input_file))[0]
 
         # Generate the pnach
-        pnach_lines = self.generate_pnach_str(input_file, mod_name, author, csv_encoding)
+        patch_lines = self.generate_patch_str(input_file, mod_name, author, csv_encoding, format)
 
         # Write the final pnach file
-        outfile = os.path.join(output_dir, f"{crc}.{mod_name}.pnach")
+        outfile = os.path.join(output_dir, f"{crc}.{mod_name}.{format}")
         with open(outfile, "w+", encoding="iso-8859-1") as f:
-            f.write(pnach_lines)
+            f.write(patch_lines)
 
         print(f"Wrote pnach file to {outfile}")
 
