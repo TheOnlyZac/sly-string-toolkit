@@ -59,7 +59,7 @@ class Strings:
         # gen pnach chunks for strings that have a target address
         manual_chunks = []
         for string in manual_address_strings:
-            chunk = pnach.Chunk(string[2], string[1], patch_format)
+            chunk = pnach.Chunk(string[2], string[1], patch_format=patch_format)
             manual_chunks.append(chunk)
 
         # 3 - Generate the pointers to the strings
