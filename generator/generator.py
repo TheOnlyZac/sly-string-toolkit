@@ -98,7 +98,7 @@ class Generator:
         try:
             self.game_info = GAME_INFO[game][region]
         except KeyError as e:
-            raise(f"Error: Game or region not supported ({game}/{region})")
+            raise ValueError(f"Error: Game or region not supported ({game}/{region})")
 
         self.strings_adr = self.game_info.strings_adr if strings_address is None else strings_address
         self.code_address = self.game_info.asm_adr if code_address is None else code_address

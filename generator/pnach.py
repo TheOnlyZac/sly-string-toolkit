@@ -309,16 +309,3 @@ class Pnach:
         Returns a string representation of the pnach object.
         """
         return f"Pnach: {len(self._chunks)} chunks ({sum(len(chunk) for chunk in self._chunks)} bytes)"
-
-def main():
-    """
-    Main function for testing.
-    """
-    sample_bytes = b""
-    with open("./out/mod.bin", "rb") as sample_file:
-        sample_bytes = sample_file.read()
-    sample_pnach = Pnach(0x202E60B0, sample_bytes)
-    print(sample_pnach)
-
-if __name__ == "__main__":
-    main()
